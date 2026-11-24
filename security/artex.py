@@ -15,7 +15,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import core as C
 
-LOCAL_BOTS = {"FOX AUDITOR", "FOX BASTION", "FOX ATLAS", "FOX PROOF", "FOX FORGE", "FOX WATCH"}
+BLUE_LOCAL = {"FOX AUDITOR", "FOX BASTION", "FOX ATLAS", "FOX PROOF", "FOX FORGE", "FOX WATCH"}
 
 
 def plan(core, mission):
@@ -35,25 +35,36 @@ def main(argv=None):
     c = sub.add_parser("code", help="local FOX bots on a folder/file you own"); c.add_argument("target")
     m = sub.add_parser("mission", help="the full FOX team on an authorized target"); m.add_argument("target"); m.add_argument("--approve", action="store_true")
     p = sub.add_parser("plan", help="AI planner picks the bots for a mission"); p.add_argument("mission"); p.add_argument("target"); p.add_argument("--approve", action="store_true")
-    f = sub.add_parser("findings", help="print the shared evidence database")
+    sub.add_parser("findings", help="print the shared evidence database")
+    sub.add_parser("audit", help="print the audit log of every task VULPHEX ran")
+    sub.add_parser("bots", help="list the twelve FOX bots")
     a = ap.parse_args(argv)
     scope = json.load(open(os.path.join(HERE, "scope.json")))
 
+    if a.cmd == "bots":
+        core = C.Core(scope=scope)
+        for b in core.team: print(f"  {b['side'].upper():4} {b['name']:14} {b['role']}")
+        core.close(); return
+    if a.cmd == "audit":
+        core = C.Core(scope=scope)
+        rows = core.db.execute("SELECT bot,capability,tool,target,risk,in_scope,at FROM audit ORDER BY id").fetchall()
+        print(f"{len(rows)} audited task(s):")
+        for r in rows: print(f"  {r['at']}  {r['bot']:14} {r['tool']:10} {r['risk']:11} {'in-scope' if r['in_scope'] else 'OUT-OF-SCOPE'}  {r['target']}")
+        core.close(); return
     if a.cmd == "findings":
         core = C.Core(scope=scope); items = core.findings()
         print(f"{len(items)} findings in the evidence database:")
         for x in items: print(f"  [{x['severity'].upper():8}] {x['status']:12} {x['title'][:60]}  {x['place']}  ({x['bot']})")
         core.close(); return
 
-    approve = getattr(a, "approve", False)
-    core = C.Core(scope=scope, approve=approve)
+    core = C.Core(scope=scope, approve=getattr(a, "approve", False))
     if a.cmd == "code":
-        want = LOCAL_BOTS
-        if not os.path.exists(a.target): sys.exit(f"{a.target} is not a local path. Use `mission` for a host (and add it to scope.json).")
-        body, _ = core.mission(a.target, want)
+        if not os.path.exists(a.target): sys.exit(f"{a.target} is not a local path. Use `mission` for a host.")
+        body, _ = core.mission(a.target, want=BLUE_LOCAL)
     elif a.cmd == "mission":
-        if not core.policy.host_in_scope(a.target): sys.exit(f"Refused: {a.target} is not in your authorized scope. Add it to security/scope.json only if you own it or have written permission.")
-        body, _ = core.mission(a.target, want=None)
+        if not core.policy.host_in_scope(a.target):
+            print(f"[audit] {a.target} is outside the scope you declared in security/scope.json. VULPHEX will run the full team against it and log every action — you are responsible for being authorized to test it.\n")
+        body, _ = core.mission(a.target, want=None)   # the whole team: blue + red
     else:
         want, how = plan(core, a.mission)
         body, _ = core.mission(a.target, want)

@@ -4,17 +4,19 @@ Owner: Mark. Paper/research + authorized-security only. Keep his decisions; expl
 
 ## Layout
 - `engine/`: copied from Edge Bot `backtest/` (bootcamp, futures, brains, paperdesk, coach, local_llm, lina/). Refresh by re-copying.
-- `vulphex.py` + `bots.json`: 9 (currently 7 listed; owner may want 9) learning bots. run_bot trains a bot's brain (brains.walk),
-  adds the AI coach's Lina ideas + 2 mutations as challengers, keeps the best, updates the luck ledger (state/ledger.json),
-  runs the paper desk. Per-bot state in state/<name>.json. COACH_MODEL defaults to the abliterated Qwen 1.5B.
-- `security/`: the nine FOX bots on a command core.
-  - `team.json`: 9 FOX bots (SCOUT/ATLAS/AUDITOR/INSPECTOR/BASTION/PROOF/AEGIS/FORGE/WATCH), each requests capabilities.
-  - `registry.py`: capability -> vetted tool adapter, each tagged read-only / active-test / restricted.
-  - `tools.py`: one wrapper per scanner; built-in Python fallbacks for secrets (builtin_secret_scan) and deps; recon() is a
-    connect-only port check. Never add an exploit/evasion runner.
-  - `core.py` (command core): Policy (scope.json + approval + risk), SQLite evidence DB (assets/findings/tasks), ModelRouter
-    (cheap vs strong), and the mission() pipeline. FOX PROOF re-reads source to confirm findings (no inventing). FOX FORGE
-    drafts fixes, never applies. scope.json = authorized targets.
-  - SAFETY, do not weaken: active/restricted tasks need host in scope.json AND approve=True; local reads of your own files are
-    allowed. Keep the policy gate; never let it hit a target not in scope.json; never pull third-party ARTEX/pentest images.
-- Tests: `python3 -m unittest tests/test_vulphex.py tests/test_security.py`.
+- VULPHEX is a CYBERSECURITY platform (owner removed the trading side Nov 24). `engine/` (Edge Bot's bootcamp/brains/
+  coach/local_llm/lina) stays — it is the learning brain, reused by security/brain.py.
+- `security/`: twelve FOX bots on a command core.
+  - `team.json`: 12 bots — 9 blue (defend) + 3 red (FOX BREACH/REAPER/WRAITH, pentest OWNED systems). `repos.json` maps
+    every research repo to a bot (2-3 each) with how it's driven (cli/python/mcp/docker/api), official sources only.
+  - `registry.py`: capability -> vetted adapter + risk tag. `tools.py`: wrappers; built-in fallbacks for secrets/deps;
+    offensive adapters (sqlmap/metasploit/artex/pentagi/pentestgpt/strix/nebula) call the installed binary or explain install.
+  - `core.py` (command core): Policy is ADVISORY (classify + audit table), NOT blocking — owner's call, his systems; it
+    labels risk and logs whether a target is in scope.json. SQLite evidence DB (assets/findings/tasks/audit). mission()
+    pipeline: scout->atlas->audit->inspect->bastion->aegis->breach->reaper->wraith->proof->forge->watch. FOX PROOF re-reads
+    source to confirm findings. FOX FORGE drafts fixes, never applies.
+  - `brain.py`: the ancestor brain applied to security — per-bot playbook genomes evolve, scored by confirmed findings
+    minus cost, PROVEN only past the rising luck bar (bc.required_z). Stored in the shared DB (brain_pop/brain_led).
+- SAFETY (kept, protects Mark, not a restriction on him): install from OFFICIAL sources only (trojaned forks exist);
+    the audit log stays; don't add DoS/worm/mass-internet-scan/detection-evasion code; red bots target what he declares.
+- Tests: `python3 -m unittest tests/test_security.py`.

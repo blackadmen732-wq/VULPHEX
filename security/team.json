@@ -1,14 +1,17 @@
 {
-  "_help": "VULPHEX's nine FOX bots: one coordinated security team. Each is a specialist that REQUESTS capabilities; the tool registry (registry.py) picks a vetted adapter. 'kind' local = reads files/data you own (allowed). active = reaches a target over the network (scope.json + approval required). The command core routes work between them: one bot's findings become another's input.",
+  "_help": "VULPHEX's twelve FOX bots. Nine DEFEND and learn; three PENETRATE your own systems (FOX BREACH, REAPER, WRAITH). Each requests capabilities; the registry picks a vetted tool/repo adapter (repos.json lists which 2-3 repos each bot drives). Every bot shares one evolving brain (brain.py) + the uncensored coach model. Side: blue = defensive, red = offensive (authorized targets you own).",
   "bots": [
-    {"name": "FOX SCOUT",     "role": "Asset discovery",       "kind": "active", "capabilities": ["asset_discovery"],                      "tools": ["recon"],                 "note": "builds the inventory of authorized hosts, ports and exposed services"},
-    {"name": "FOX ATLAS",     "role": "System mapping",        "kind": "local",  "capabilities": ["system_mapping"],                      "tools": ["graph"],                 "note": "links assets, code and findings into one shared graph"},
-    {"name": "FOX AUDITOR",   "role": "Code intelligence",     "kind": "local",  "capabilities": ["source_code_analysis", "secret_detection"], "tools": ["semgrep", "gitleaks"], "note": "reads your source for insecure patterns and leaked secrets"},
-    {"name": "FOX INSPECTOR", "role": "Web and API security",  "kind": "active", "capabilities": ["web_app_scan"],                        "tools": ["zap", "nuclei"],         "note": "scans approved web apps and APIs"},
-    {"name": "FOX BASTION",   "role": "Infrastructure",        "kind": "local",  "capabilities": ["dependency_audit"],                    "tools": ["trivy"],                 "note": "checks dependencies, containers and configs"},
-    {"name": "FOX PROOF",     "role": "Finding verification",  "kind": "local",  "capabilities": ["finding_verification"],                "tools": ["verify"],                "note": "re-checks each finding so bots cannot invent results; intrusive proof needs approval"},
-    {"name": "FOX AEGIS",     "role": "AI security",           "kind": "active", "capabilities": ["ai_security"],                         "tools": ["garak", "pyrit", "promptfoo"], "note": "red-teams your LLMs and AI apps"},
-    {"name": "FOX FORGE",     "role": "Repair engineering",    "kind": "local",  "capabilities": ["repair"],                              "tools": ["fix"],                   "note": "drafts scoped fixes for review; never auto-applies"},
-    {"name": "FOX WATCH",     "role": "Continuous monitoring", "kind": "local",  "capabilities": ["monitoring"],                          "tools": ["watch"],                 "note": "schedules repeat checks, tracks what changed and what is still open"}
+    {"name": "FOX SCOUT",     "side": "blue", "role": "Asset discovery",       "capabilities": ["asset_discovery"]},
+    {"name": "FOX ATLAS",     "side": "blue", "role": "System mapping",        "capabilities": ["system_mapping"]},
+    {"name": "FOX AUDITOR",   "side": "blue", "role": "Code intelligence",     "capabilities": ["source_code_analysis", "secret_detection"]},
+    {"name": "FOX INSPECTOR", "side": "blue", "role": "Web and API security",  "capabilities": ["web_app_scan"]},
+    {"name": "FOX BASTION",   "side": "blue", "role": "Infrastructure",        "capabilities": ["dependency_audit"]},
+    {"name": "FOX PROOF",     "side": "blue", "role": "Finding verification",  "capabilities": ["finding_verification"]},
+    {"name": "FOX AEGIS",     "side": "blue", "role": "AI security",           "capabilities": ["ai_security"]},
+    {"name": "FOX FORGE",     "side": "blue", "role": "Repair engineering",    "capabilities": ["repair"]},
+    {"name": "FOX WATCH",     "side": "blue", "role": "Continuous monitoring", "capabilities": ["monitoring"]},
+    {"name": "FOX BREACH",    "side": "red",  "role": "Exploit validation",    "capabilities": ["exploit_validation"]},
+    {"name": "FOX REAPER",    "side": "red",  "role": "Autonomous pentest",    "capabilities": ["autonomous_pentest"]},
+    {"name": "FOX WRAITH",    "side": "red",  "role": "Adversary simulation",  "capabilities": ["adversary_sim"]}
   ]
 }

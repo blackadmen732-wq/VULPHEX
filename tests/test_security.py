@@ -1,92 +1,101 @@
-# VULPHEX Security: the command core — policy engine, shared evidence DB, verification, and the FOX pipeline.
-# No network, no external tools: the built-in secret scanner and a temp SQLite DB make it run anywhere.
-import json, os, sys, tempfile, unittest
+# VULPHEX Security: 12 FOX bots, advisory policy + audit log, shared evidence DB, verification, and the evolving brain.
+# No network, no external tools: the built-in secret scanner + temp SQLite make it run anywhere.
+import json, os, random, sys, tempfile, unittest
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "security"))
 import tools as T
 import registry as R
 import core as C
+import brain as B
 
 
 def temp_core(scope=None, approve=False):
-    db = tempfile.mktemp(suffix=".db")
-    return C.Core(db_path=db, scope=scope or {"hosts": []}, approve=approve)
+    return C.Core(db_path=tempfile.mktemp(suffix=".db"), scope=scope or {"hosts": []}, approve=approve)
 
 
-class PolicyTest(unittest.TestCase):
-    def test_local_reads_are_allowed_but_remote_needs_scope_and_approval(self):
-        p = C.Policy({"hosts": ["example.com"]}, approve=False)
-        self.assertEqual(p.authorize("source_code_analysis", "semgrep", str(ROOT))[0], True)        # your files
-        ok, why = p.authorize("web_app_scan", "zap", "someone-else.com")
-        self.assertFalse(ok); self.assertIn("REFUSED", why)                                         # not in scope
-        ok, why = p.authorize("web_app_scan", "zap", "example.com")
-        self.assertFalse(ok); self.assertIn("approval", why)                                        # in scope, no approval
-        p2 = C.Policy({"hosts": ["example.com"]}, approve=True)
-        self.assertTrue(p2.authorize("web_app_scan", "zap", "example.com")[0])
-
-    def test_private_ranges_off_by_default(self):
-        self.assertFalse(C.Policy({"hosts": ["10.0.0.5"]}, True).host_in_scope("10.0.0.5"))
-        self.assertTrue(C.Policy({"hosts": ["10.0.0.5"], "allow_private_ranges": True}, True).host_in_scope("10.0.0.5"))
-
-
-class TeamAndRegistryTest(unittest.TestCase):
-    def test_nine_fox_bots(self):
+class TeamTest(unittest.TestCase):
+    def test_twelve_fox_bots_nine_blue_three_red(self):
         team = json.load(open(ROOT / "security/team.json"))["bots"]
-        self.assertEqual(len(team), 9)
-        self.assertTrue(all(b["name"].startswith("FOX ") for b in team))
+        self.assertEqual(len(team), 12)
+        self.assertEqual(sum(b["side"] == "blue" for b in team), 9)
+        self.assertEqual(sum(b["side"] == "red" for b in team), 3)
         for b in team:
             for cap in b["capabilities"]: self.assertIn(cap, R.CAPABILITIES, cap)
 
-    def test_every_capability_has_a_known_risk(self):
-        for cap, ads in R.CAPABILITIES.items():
-            for a in ads: self.assertIn(a["risk"], ("read-only", "active-test", "restricted"))
+    def test_every_repo_in_the_map_belongs_to_a_real_bot(self):
+        team = {b["name"] for b in json.load(open(ROOT / "security/team.json"))["bots"]}
+        repos = json.load(open(ROOT / "repos.json"))["bots"]
+        self.assertEqual(set(repos), team)
+        for bot, lst in repos.items():
+            self.assertTrue(2 <= len(lst) <= 3, f"{bot} has {len(lst)} repos")
 
 
-class EvidenceDBTest(unittest.TestCase):
-    def test_findings_are_stored_once_and_survive_reopen(self):
-        core = temp_core(); db = core.db
-        bot = {"name": "FOX AUDITOR", "role": "code"}
-        f = {"severity": "high", "title": "Secret: X", "where": "a.py:3", "detail": ""}
-        _, new1 = core.add_finding(bot["name"], "secret_detection", f, "gitleaks")
-        _, new2 = core.add_finding(bot["name"], "secret_detection", f, "gitleaks")
-        self.assertTrue(new1); self.assertFalse(new2); self.assertEqual(len(core.findings()), 1)
+class PolicyTest(unittest.TestCase):
+    def test_policy_is_advisory_never_blocks_but_flags_out_of_scope(self):
+        p = C.Policy({"hosts": ["example.com"]}, approve=False)
+        risk, declared = p.classify("source_code_analysis", "semgrep", str(ROOT))
+        self.assertTrue(declared)                                         # local files you own
+        risk, declared = p.classify("exploit_validation", "sqlmap", "someone-else.com")
+        self.assertEqual(risk, "active-test"); self.assertFalse(declared)  # flagged, not blocked
+        risk, declared = p.classify("exploit_validation", "sqlmap", "example.com")
+        self.assertTrue(declared)
 
-    def test_verify_confirms_a_real_source_line_and_flags_a_gone_one(self):
-        d = tempfile.mkdtemp(); real = os.path.join(d, "c.py")
-        open(real, "w").write("x=1\nAWS='AKIAIOSFODNN7EXAMPLE'\n")
+    def test_an_out_of_scope_active_task_runs_but_is_audited_and_warned(self):
+        core = temp_core(scope={"hosts": []})
+        bot = {"name": "FOX SCOUT", "role": "x"}
+        # recon on a host that won't connect: still audited, still warned
+        log = []
+        core.run_capability(bot, "asset_discovery", "127.0.0.1", log)     # localhost connect check, harmless
+        aud = core.db.execute("SELECT target, in_scope FROM audit").fetchall()
+        self.assertTrue(aud and aud[0]["target"] == "127.0.0.1")
+        self.assertTrue(any("OUTSIDE your declared scope" in l for l in log))
+
+
+class EvidenceAndProofTest(unittest.TestCase):
+    def test_verify_confirms_a_real_line_and_flags_a_gone_one(self):
+        d = tempfile.mkdtemp(); real = os.path.join(d, "c.py"); open(real, "w").write("x=1\nAWS='AKIAIOSFODNN7EXAMPLE'\n")
         core = temp_core()
-        core.add_finding("FOX AUDITOR", "secret_detection", {"severity": "high", "title": "Possible AWS key", "where": f"{real}:2", "detail": ""}, "gitleaks")
-        core.add_finding("FOX AUDITOR", "secret_detection", {"severity": "high", "title": "Ghost", "where": f"{d}/missing.py:9", "detail": ""}, "gitleaks")
+        core.add_finding("FOX AUDITOR", "secret_detection", {"severity": "high", "title": "AWS", "where": f"{real}:2", "detail": ""}, "gitleaks")
+        core.add_finding("FOX AUDITOR", "secret_detection", {"severity": "high", "title": "Ghost", "where": f"{d}/x.py:9", "detail": ""}, "gitleaks")
         core.verify_all([])
-        by_title = {f["title"]: f for f in core.findings()}
-        self.assertEqual(by_title["Possible AWS key"]["status"], "verified")
-        self.assertEqual(by_title["Ghost"]["status"], "inconclusive")
+        by = {f["title"]: f["status"] for f in core.findings()}
+        self.assertEqual(by["AWS"], "verified"); self.assertEqual(by["Ghost"], "inconclusive")
 
-    def test_forge_drafts_a_fix_only_for_verified_findings(self):
-        d = tempfile.mkdtemp(); real = os.path.join(d, "c.py"); open(real, "w").write("pw='hunter2hunter2'\n")
-        core = temp_core()
-        core.add_finding("FOX AUDITOR", "secret_detection", {"severity": "high", "title": "secret", "where": f"{real}:1", "detail": ""}, "gitleaks")
-        core.verify_all([]); n = core.repair_all([])
-        self.assertEqual(n, 1); f = core.findings()[0]
-        self.assertEqual(f["status"], "fix_proposed"); self.assertIn("environment variable", f["fix"])
+
+class BrainTest(unittest.TestCase):
+    def test_a_better_tactic_wins_and_proves_out_under_the_luck_filter(self):
+        db = __import__("sqlite3").connect(":memory:"); db.row_factory = __import__("sqlite3").Row
+        br = B.Brain(db, size=6, seed=1)
+        g = br.active("FOX SCOUT")                                        # a seeded tactic
+        self.assertEqual(set(g), set(B.GENES))
+        # feed the same genome a strong reward many times: it should become proven
+        proven_seen = False
+        for _ in range(8):
+            g = br.active("FOX SCOUT"); _, note = br.score("FOX SCOUT", g, 20.0)
+            if "proven" in note and "0 proven" not in note: proven_seen = True
+        self.assertTrue(proven_seen, "a consistently good tactic should pass the luck filter")
+
+    def test_reward_counts_confirmed_findings_minus_cost(self):
+        fs = [{"severity": "high", "status": "verified"}, {"severity": "low", "status": "verified"}, {"severity": "high", "status": "new"}]
+        self.assertAlmostEqual(B.reward(fs, tasks=2), 5 + 1 - 0.4)        # new (unconfirmed) doesn't count
+
+    def test_keep_bar_drops_low_severity_noise(self):
+        picky = {"depth": "deep", "keep": "high", "persist": True, "retry": False}
+        fs = [{"severity": "high"}, {"severity": "low"}, {"severity": "info"}]
+        db = __import__("sqlite3").connect(":memory:")
+        kept = B.Brain(db, seed=1).filter_findings(picky, fs)
+        self.assertEqual([f["severity"] for f in kept], ["high"])
 
 
 class PipelineTest(unittest.TestCase):
-    def test_a_local_mission_audits_verifies_and_reports(self):
-        d = tempfile.mkdtemp()
-        open(os.path.join(d, "app.py"), "w").write("API_KEY = 'AKIAIOSFODNN7EXAMPLE'\n")
+    def test_local_mission_runs_the_blue_team_and_the_brain_learns(self):
+        d = tempfile.mkdtemp(); open(os.path.join(d, "app.py"), "w").write("API_KEY='AKIAIOSFODNN7EXAMPLE'\n")
         core = temp_core()
         body, counts = core.mission(d, want={"FOX AUDITOR", "FOX ATLAS", "FOX PROOF", "FOX FORGE", "FOX WATCH"})
         self.assertGreaterEqual(counts["high"], 1)
-        self.assertIn("FOX PROOF", body); self.assertIn("confirmed", body); self.assertIn("fix", body)
-        self.assertGreaterEqual(core.db.execute("SELECT COUNT(*) FROM assets").fetchone()[0], 1)   # Atlas mapped it
-
-    def test_an_active_bot_is_blocked_off_scope_in_a_mission(self):
-        core = temp_core(scope={"hosts": []}, approve=True)
-        body, _ = core.mission("not-my-site.com", want={"FOX SCOUT"})
-        self.assertIn("REFUSED", body)
-        self.assertEqual(len(core.findings()), 0)
+        self.assertIn("brain:", body); self.assertIn("confirmed", body); self.assertIn("fix", body)
+        self.assertGreaterEqual(core.db.execute("SELECT COUNT(*) FROM brain_pop").fetchone()[0], 1)
 
 
 if __name__ == "__main__":

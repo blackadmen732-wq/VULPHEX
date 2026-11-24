@@ -14,6 +14,7 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(ROOT, "engine"))
 import tools as T
 import registry as R
+import brain as B
 
 SEV_RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
 
@@ -39,17 +40,14 @@ class Policy:
         if is_private(host) and not self.scope.get("allow_private_ranges"): return False
         return any(fnmatch.fnmatch(host, pat) for pat in self.scope.get("hosts", []))
 
-    def authorize(self, capability, tool, target):
+    def classify(self, capability, tool, target):
+        """VULPHEX is Mark's own tool: it runs what he points it at (his systems / authorized engagements). This does
+        NOT block; it labels the task and notes whether the target is inside the scope he declared, so the audit log
+        is honest. Authorization is the operator's responsibility, like every real pentest tool."""
         risk = R.risk_of(capability, tool)
-        if risk == "read-only":
-            if os.path.exists(target) or capability in ("system_mapping", "finding_verification", "repair", "monitoring"):
-                return True, "read-only"
-            # a read-only tool aimed at a remote endpoint (e.g. promptfoo config URL) still needs scope
-        if not self.host_in_scope(target):
-            return False, f"REFUSED: {target} is not in your authorized scope (edit security/scope.json)"
-        if not self.approve:
-            return False, "needs your approval for an active task (pass --approve)"
-        return True, risk
+        local = os.path.exists(target) or capability in ("system_mapping", "finding_verification", "repair", "monitoring")
+        declared = local or self.host_in_scope(target)
+        return risk, declared
 
 
 # ---------------------------------------------------------------- model router
@@ -84,6 +82,8 @@ CREATE TABLE IF NOT EXISTS findings (id TEXT PRIMARY KEY, bot TEXT, capability T
                                      place TEXT, detail TEXT, tool TEXT, status TEXT, verified_by TEXT, fix TEXT, created TEXT);
 CREATE TABLE IF NOT EXISTS tasks    (id INTEGER PRIMARY KEY AUTOINCREMENT, bot TEXT, capability TEXT, target TEXT,
                                      status TEXT, note TEXT, created TEXT);
+CREATE TABLE IF NOT EXISTS audit    (id INTEGER PRIMARY KEY AUTOINCREMENT, bot TEXT, capability TEXT, tool TEXT,
+                                     target TEXT, risk TEXT, in_scope INTEGER, at TEXT);
 """
 
 
@@ -93,6 +93,7 @@ class Core:
         self.db.row_factory = sqlite3.Row; self.db.executescript(SCHEMA)
         self.policy = Policy(scope if scope is not None else self._load("scope.json", {}), approve)
         self.router = ModelRouter()
+        self.brain = B.Brain(self.db)
         self.team = self._load("team.json", {"bots": []})["bots"]
         self.byname = {b["name"].upper(): b for b in self.team}
 
@@ -113,6 +114,10 @@ class Core:
                         (fid, bot, capability, f["severity"], f["title"], f["where"], f.get("detail", ""), tool, "new", "", "", now_iso()))
         self.db.commit(); return fid, True
 
+    def audit(self, bot, capability, tool, target, risk, declared):
+        self.db.execute("INSERT INTO audit (bot,capability,tool,target,risk,in_scope,at) VALUES (?,?,?,?,?,?,?)",
+                        (bot, capability, tool, target, risk, int(declared), now_iso())); self.db.commit()
+
     def log_task(self, bot, capability, target, status, note=""):
         self.db.execute("INSERT INTO tasks (bot,capability,target,status,note,created) VALUES (?,?,?,?,?,?)",
                         (bot, capability, target, status, note, now_iso())); self.db.commit()
@@ -131,9 +136,10 @@ class Core:
             tool = a["tool"]
             if tool in R.CORE_TOOLS: continue                              # core capabilities handled elsewhere
             if not R.installed(tool): continue
-            ok, why = self.policy.authorize(capability, tool, target)
-            if not ok:
-                log.append(f"  - {bot['name']} / {capability}: {why}"); self.log_task(bot["name"], capability, target, "blocked", why); return 0
+            risk, declared = self.policy.classify(capability, tool, target)
+            self.audit(bot["name"], capability, tool, target, risk, declared)
+            if risk != "read-only" and not declared:
+                log.append(f"  - {bot['name']} / {capability}: ⚠ {target} is OUTSIDE your declared scope (security/scope.json) — running anyway, logged; you are responsible for authorization")
             try:
                 found = R.run(tool, target); new = 0
                 for f in found:
@@ -205,7 +211,9 @@ class Core:
     def mission(self, target, want):
         """want: set of bot names to involve (default all applicable). Returns (report text, counts)."""
         log, t0 = [], time.time()
-        order = ["FOX SCOUT", "FOX ATLAS", "FOX AUDITOR", "FOX INSPECTOR", "FOX BASTION", "FOX AEGIS", "FOX PROOF", "FOX FORGE", "FOX WATCH"]
+        order = ["FOX SCOUT", "FOX ATLAS", "FOX AUDITOR", "FOX INSPECTOR", "FOX BASTION", "FOX AEGIS",
+                 "FOX BREACH", "FOX REAPER", "FOX WRAITH", "FOX PROOF", "FOX FORGE", "FOX WATCH"]
+        ran = []
         for name in order:
             bot = self.byname.get(name)
             if not bot or (want and name not in want): continue
@@ -213,8 +221,18 @@ class Core:
             if name == "FOX PROOF": self.verify_all(log); continue
             if name == "FOX FORGE": self.repair_all(log); continue
             if name == "FOX WATCH": self.monitor(log); continue
+            self.brain.active(bot["name"])                       # seed/choose this bot's playbook
+            before = self.db.execute("SELECT COUNT(*) FROM tasks WHERE bot=?", (bot["name"],)).fetchone()[0]
             for cap in bot["capabilities"]:
                 self.run_capability(bot, cap, target, log)
+            ran.append((bot["name"], before))
+        # the brain learns: score each bot by what it confirmed this mission, evolve its tactics under the luck filter
+        for name, before in ran:
+            mine = [f for f in self.findings() if f["bot"] == name]
+            tasks = self.db.execute("SELECT COUNT(*) FROM tasks WHERE bot=?", (name,)).fetchone()[0] - before
+            g = self.brain.active(name); rwd = B.reward(mine, tasks)
+            _, note = self.brain.score(name, g, rwd)
+            if mine or tasks: log.append(f"  - {name} {note}")
         return self.report(target, log, time.time() - t0)
 
     def report(self, target, log, secs):

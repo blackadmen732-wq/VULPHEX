@@ -14,6 +14,9 @@ CAPABILITIES = {
     "dependency_audit":     [{"tool": "trivy",     "risk": "read-only"}],     # built-in fallback
     "web_app_scan":         [{"tool": "zap",       "risk": "active-test"}, {"tool": "nuclei", "risk": "active-test"}],
     "ai_security":          [{"tool": "garak",     "risk": "active-test"}, {"tool": "promptfoo", "risk": "read-only"}, {"tool": "pyrit", "risk": "active-test"}],
+    "exploit_validation":   [{"tool": "sqlmap",    "risk": "active-test"}, {"tool": "metasploit", "risk": "active-test"}, {"tool": "autohunter", "risk": "active-test"}],
+    "autonomous_pentest":   [{"tool": "artex",     "risk": "active-test"}, {"tool": "pentagi", "risk": "active-test"}, {"tool": "pentestgpt", "risk": "active-test"}],
+    "adversary_sim":        [{"tool": "strix",     "risk": "active-test"}, {"tool": "nebula", "risk": "active-test"}],
     # these three are served by the core itself (graph/verify/fix/watch), listed so bots can request them:
     "system_mapping":       [{"tool": "graph",     "risk": "read-only"}],
     "finding_verification": [{"tool": "verify",    "risk": "read-only"}],
@@ -38,7 +41,7 @@ def installed(tool):
     """A real scanner is 'ready' only if its binary is present; the two built-in fallbacks and core tools always are."""
     if tool in CORE_TOOLS or tool in ("recon",): return True
     if tool in ("gitleaks", "trivy"): return True            # pure-Python fallback inside tools.py
-    return T.have(tool)
+    return T.have(tool)                                       # external tools/repos: ready only when installed from their official source
 
 
 def run(tool, target):

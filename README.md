@@ -1,46 +1,49 @@
 # VULPHEX
 
-Two things that share one brain — a local **uncensored** ("abliterated") Qwen model, no API, no cost per run.
-**Everything here is for research or for systems you own. Paper trading only. Authorized security targets only.**
+A cybersecurity platform: **twelve FOX bots** — nine that defend and three that penetrate your own systems — driven by
+one evolving brain (Edge Bot's learning neural network + a local **uncensored** Qwen model, no API, no cost per run).
+**For systems you own or are authorized to test.** You declare your scope; VULPHEX logs every action.
 
-## 1. Trading brains — `vulphex.py`
-Nine learning bots (`bots.json`) built on Edge Bot's engine: neural networks (neuron, forest, Rocket, Rocket Team),
-the rising **luck filter**, and a **paper desk** that picks real stocks and scores them forward. The uncensored
-**AI coach** suggests tuning in Lina Sigra each night; only ideas that pass the exams survive. No orders, ever.
+## The twelve FOX bots
+| | Bot | Role | Drives (see `repos.json`) |
+|---|---|---|---|
+|🔵| FOX SCOUT | asset discovery | ARL, ScopeSentry, Nemo |
+|🔵| FOX ATLAS | maps assets, code & findings into one graph | Cairn, RedAmon |
+|🔵| FOX AUDITOR | source code + leaked secrets | DeepAudit, Semgrep, Gitleaks |
+|🔵| FOX INSPECTOR | web apps & APIs | ZAP, Nuclei, Shannon |
+|🔵| FOX BASTION | dependencies, containers, AI infra | Trivy, AI-Infra-Guard, OpenEASD |
+|🔵| FOX PROOF | **verifies** every finding (no inventing) | core + CAI (ref) |
+|🔵| FOX AEGIS | red-teams your LLMs & AI apps | Garak, PyRIT, Promptfoo |
+|🔵| FOX FORGE | drafts scoped fixes for review | Semgrep autofix, Strix |
+|🔵| FOX WATCH | tracks what's open, catches regressions | ARL-Next, ScopeSentry, Osmedeus |
+|🔴| FOX BREACH | proves a vuln by exploiting it on your host | sqlmap, Metasploit, AutoHunter |
+|🔴| FOX REAPER | autonomous multi-agent pentest | ARTEX, PentAGI, PentestGPT |
+|🔴| FOX WRAITH | adversary simulation / app attack | Strix, Nebula, XingRin |
 
+`repos.json` is the full integration map: every repo from the research, assigned to a bot (2–3 each), with how VULPHEX
+drives it (cli / python / mcp / docker / api). Nothing is merged into one codebase — each repo is an **adapter** a bot
+calls, installed from its **official** source.
+
+## The brain (the "ancestor" system from Edge Bot)
+Each bot carries a **playbook** that evolves: which tools, how deep, how high to set its keep-bar. After every mission
+the playbook is scored by what it actually **confirmed** (via FOX PROOF), minus cost, and the best tactics breed. The
+**luck filter** (same rule as Edge Bot) only calls a tactic *proven* once it beats a bar that rises with every tactic
+tried **and** holds on fresh runs — so VULPHEX learns what really works. The uncensored model plans missions and
+proposes new tactics in **Lina Sigra**, which are checked before they join the population.
+
+## The command core (`security/core.py`)
+- **Policy (advisory + audit):** VULPHEX runs what you point it at; it labels each task's risk and logs every action to
+  an audit trail, noting whether the target is inside the scope you declared in `security/scope.json`. It does not
+  block — authorization is yours, like every real pentest tool. `python3 security/artex.py audit` prints the log.
+- **Shared evidence database (SQLite):** assets, findings, verification status, fixes, task history, brain memory.
+- **Model router:** cheap model for planning/reports, strong for code reasoning.
+
+## Run it
 ```bash
-python3 vulphex.py                      # all bots, ~400 stocks, writes report.md
-python3 vulphex.py --stocks 300 --bots Rocket,Hydra
-```
-
-## 2. Security team — `security/`
-Nine **FOX bots**, one coordinated team on a shared command core — the ARTEX idea, built defensively. The bots hand
-work to each other: discover → map → audit → scan → **verify** → repair → monitor.
-
-| Bot | Role | Drives |
-|---|---|---|
-| FOX SCOUT | asset discovery (ports, services) | recon |
-| FOX ATLAS | maps assets, code and findings into one graph | core |
-| FOX AUDITOR | source code + leaked secrets | semgrep, gitleaks (built-in fallback) |
-| FOX INSPECTOR | web apps and APIs | OWASP ZAP, nuclei |
-| FOX BASTION | dependencies, containers, infra | trivy (built-in fallback) |
-| FOX PROOF | **verifies** every finding so a bot can't invent one | core |
-| FOX AEGIS | red-teams your LLMs and AI apps | garak, pyrit, promptfoo |
-| FOX FORGE | drafts scoped fixes for review (never auto-applies) | core |
-| FOX WATCH | tracks what's open, re-runs to catch regressions | core |
-
-**The command core** (`security/core.py`): a policy engine (scope + approval + risk level), a shared SQLite evidence
-database (assets, findings, task history), and a model router (cheap model for planning/reports, strong for code).
-
-**Safety, enforced in code:** local bots read files you own (always allowed). Active (network) bots run **only** when
-the target matches `security/scope.json` *and* you pass `--approve`. Out of scope = refused. No exploitation, no
-evasion, no third-party targets, and no attack-framework images are pulled — vetted tools are driven by name.
-
-```bash
-bash security/install-tools.sh                         # install the real scanners
-python3 security/artex.py code /path/to/your/repo      # local FOX bots on your own code
-python3 security/artex.py findings                     # the shared evidence database
-# add a host you own to security/scope.json, then:
-python3 security/artex.py mission your-site.com --approve
-python3 security/artex.py plan "check my web app and code" your-site.com --approve
+bash security/install-tools.sh                         # install real tools (official sources)
+python3 security/artex.py bots                          # the 12 FOX bots
+python3 security/artex.py code /path/to/your/repo       # blue team on your own code
+python3 security/artex.py mission your-own-host.com     # full team (declare it in scope.json first)
+python3 security/artex.py findings                      # shared evidence database
+python3 security/artex.py audit                         # audit log of every task
 ```

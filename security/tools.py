@@ -189,5 +189,35 @@ def promptfoo(target):
     return [{"severity": "medium" if fails else "info", "title": f"{fails} security check(s) failing", "where": target, "detail": "promptfoo eval"}]
 
 
-RUNNERS = {"semgrep": semgrep, "gitleaks": gitleaks, "trivy": trivy, "nuclei": nuclei,
-           "zap": zap, "recon": recon, "garak": garak, "pyrit": pyrit, "promptfoo": promptfoo}
+# ---------------------------------------------------------------- offensive adapters (FOX BREACH / REAPER / WRAITH)
+# VULPHEX drives these PUBLISHED tools; it does not contain exploits of its own. They run against the targets YOU give
+# (your own systems / authorized engagements). Install each from its OFFICIAL source (see repos.json), never a fork.
+def _external(tool, bins, how, build):
+    found = next((b for b in bins if have(b)), None)
+    if not found: raise ToolMissing(tool, how)
+    code, out, err = _run(build(found), timeout=3600)
+    note = (out or err or "").strip().splitlines()
+    return [{"severity": "info", "title": f"{tool} run complete (review its own report)", "where": "", "detail": " ".join(note[-3:])[:200]}]
+
+
+def sqlmap(target):
+    return _external("sqlmap", ["sqlmap"], "pip install sqlmap, or github.com/sqlmapproject/sqlmap",
+                     lambda b: [b, "-u", target, "--batch", "--level", "1", "--risk", "1"])
+
+
+def metasploit(target):
+    return _external("metasploit", ["msfconsole"], "official installer at docs.metasploit.com",
+                     lambda b: [b, "-q", "-x", f"db_nmap -sV {re.sub(r'^\w+://','',target).split('/')[0]}; exit"])
+
+
+def autohunter(target):  raise ToolMissing("autohunter", "install AutoHunter from its official repo, then VULPHEX will drive it")
+def artex(target):       raise ToolMissing("artex", "run ARTEX from its OFFICIAL docker image (jiwoochris/artex-global); trojaned forks exist")
+def pentagi(target):     raise ToolMissing("pentagi", "run PentAGI from its official docker image (vxcontrol/pentagi)")
+def pentestgpt(target):  raise ToolMissing("pentestgpt", "pip install pentestgpt (GreyDGL/PentestGPT)")
+def strix(target):       raise ToolMissing("strix", "pip install strix-agent (usestrix/strix)")
+def nebula(target):      raise ToolMissing("nebula", "install Nebula from berylliumsec/nebula")
+
+
+RUNNERS = {"semgrep": semgrep, "gitleaks": gitleaks, "trivy": trivy, "nuclei": nuclei, "zap": zap, "recon": recon,
+           "garak": garak, "pyrit": pyrit, "promptfoo": promptfoo, "sqlmap": sqlmap, "metasploit": metasploit,
+           "autohunter": autohunter, "artex": artex, "pentagi": pentagi, "pentestgpt": pentestgpt, "strix": strix, "nebula": nebula}

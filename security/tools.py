@@ -245,12 +245,35 @@ def metasploit(target):
                      lambda b: [b, "-q", "-x", f"db_nmap -sV {re.sub(r'^\w+://','',target).split('/')[0]}; exit"])
 
 
-def autohunter(target):  raise ToolMissing("autohunter", "install AutoHunter from its official repo, then VULPHEX will drive it")
-def artex(target):       raise ToolMissing("artex", "run ARTEX from its OFFICIAL docker image (jiwoochris/artex-global); trojaned forks exist")
-def pentagi(target):     raise ToolMissing("pentagi", "run PentAGI from its official docker image (vxcontrol/pentagi)")
-def pentestgpt(target):  raise ToolMissing("pentestgpt", "pip install pentestgpt (GreyDGL/PentestGPT)")
-def strix(target):       raise ToolMissing("strix", "pip install strix-agent (usestrix/strix)")
-def nebula(target):      raise ToolMissing("nebula", "install Nebula from berylliumsec/nebula")
+def _pentest_cfg():
+    try: return json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "pentest.json")))
+    except (OSError, ValueError): return {}
+
+
+def _run_pentest(tool, target, on_line=None):
+    """Actually launch a real pentest tool (ARTEX / PentAGI / PentestGPT / ...) against the target you named, using the
+    command in pentest.json. Streams its output and returns it as findings. The tool does its own attacking; VULPHEX
+    runs it and records the result. Only point it at systems you own or are authorized to test."""
+    entry = _pentest_cfg().get(tool) or {}
+    needs, tmpl = entry.get("needs", tool), entry.get("cmd")
+    if not tmpl: raise ToolMissing(tool, f"add a command for {tool} in security/pentest.json")
+    if not have(needs): raise ToolMissing(tool, f"install {needs} (and {tool}); see repos.json / install-tools.sh. Then VULPHEX runs it.")
+    cmd = [a.replace("{target}", target) for a in tmpl]
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=7200)
+    out = (r.stdout + "\n" + r.stderr).strip()
+    if on_line:
+        for ln in out.splitlines()[-40:]: on_line(ln)
+    tail = " ".join(out.splitlines()[-6:])[:400] or f"{tool} finished (exit {r.returncode})"
+    sev = "high" if r.returncode == 0 and out else "info"
+    return [{"severity": sev, "title": f"{tool} run against {target} — review its full output", "where": target, "detail": tail}]
+
+
+def autohunter(target):  return _run_pentest("autohunter", target)
+def artex(target):       return _run_pentest("artex", target)
+def pentagi(target):     return _run_pentest("pentagi", target)
+def pentestgpt(target):  return _run_pentest("pentestgpt", target)
+def strix(target):       return _run_pentest("strix", target)
+def nebula(target):      return _run_pentest("nebula", target)
 
 
 RUNNERS = {"semgrep": semgrep, "gitleaks": gitleaks, "trivy": trivy, "nuclei": nuclei, "zap": zap, "recon": recon,

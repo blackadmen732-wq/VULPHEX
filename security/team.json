@@ -7,7 +7,9 @@
       "role": "Asset discovery",
       "capabilities": [
         "asset_discovery"
-      ]
+      ],
+      "color": "#ff9f1c",
+      "persona": "curious and fast \u2014 maps every door and window before anyone moves"
     },
     {
       "name": "FOX ATLAS",
@@ -15,7 +17,9 @@
       "role": "System mapping",
       "capabilities": [
         "system_mapping"
-      ]
+      ],
+      "color": "#8e7dff",
+      "persona": "the cartographer \u2014 connects every asset, clue and finding into one picture"
     },
     {
       "name": "FOX AUDITOR",
@@ -25,7 +29,9 @@
         "source_code_analysis",
         "secret_detection",
         "agentic_coding"
-      ]
+      ],
+      "color": "#2ec4b6",
+      "persona": "sharp-eyed \u2014 reads code line by line and spots the rot"
     },
     {
       "name": "FOX INSPECTOR",
@@ -33,7 +39,9 @@
       "role": "Web and API security",
       "capabilities": [
         "web_app_scan"
-      ]
+      ],
+      "color": "#3ea8ff",
+      "persona": "relentless \u2014 knocks on every endpoint until one gives"
     },
     {
       "name": "FOX BASTION",
@@ -41,7 +49,9 @@
       "role": "Infrastructure",
       "capabilities": [
         "dependency_audit"
-      ]
+      ],
+      "color": "#ffd23f",
+      "persona": "the fortress keeper \u2014 guards the supply chain and the cloud"
     },
     {
       "name": "FOX PROOF",
@@ -49,7 +59,9 @@
       "role": "Finding verification",
       "capabilities": [
         "finding_verification"
-      ]
+      ],
+      "color": "#9b5de5",
+      "persona": "the skeptic \u2014 trusts nothing until he's reproduced it himself"
     },
     {
       "name": "FOX AEGIS",
@@ -57,7 +69,9 @@
       "role": "AI security",
       "capabilities": [
         "ai_security"
-      ]
+      ],
+      "color": "#00bbf9",
+      "persona": "the AI whisperer \u2014 breaks and guards other models"
     },
     {
       "name": "FOX FORGE",
@@ -66,7 +80,9 @@
       "capabilities": [
         "repair",
         "agentic_coding"
-      ]
+      ],
+      "color": "#f15bb5",
+      "persona": "the fixer \u2014 writes the clean patch and proves it holds"
     },
     {
       "name": "FOX WATCH",
@@ -74,7 +90,9 @@
       "role": "Continuous monitoring",
       "capabilities": [
         "monitoring"
-      ]
+      ],
+      "color": "#43aa8b",
+      "persona": "never sleeps \u2014 catches the bug the moment it comes back"
     },
     {
       "name": "FOX BREACH",
@@ -82,7 +100,9 @@
       "role": "Exploit validation",
       "capabilities": [
         "exploit_validation"
-      ]
+      ],
+      "color": "#ff4d6d",
+      "persona": "the breaker \u2014 proves a hole by walking through it"
     },
     {
       "name": "FOX REAPER",
@@ -91,7 +111,9 @@
       "capabilities": [
         "autonomous_pentest",
         "agentic_coding"
-      ]
+      ],
+      "color": "#e5383b",
+      "persona": "the hunter \u2014 plans and strikes on its own"
     },
     {
       "name": "FOX WRAITH",
@@ -99,7 +121,9 @@
       "role": "Adversary simulation",
       "capabilities": [
         "adversary_sim"
-      ]
+      ],
+      "color": "#c1121f",
+      "persona": "the ghost \u2014 thinks exactly like the attacker you fear"
     }
   ]
 }

@@ -28,6 +28,7 @@ def brain_summary(core):
         runs = sum(r["runs"] for r in rows); total = sum(r["total"] for r in rows)
         active = next((r for r in rows if r["active"]), rows[0] if rows else None)
         out.append({"name": b["name"], "side": b["side"], "role": b["role"],
+                    "color": b.get("color", "#ffb703"), "persona": b.get("persona", ""),
                     "runs": runs, "mean": round(total / runs, 1) if runs else 0.0,
                     "proven": sum(r["proven"] for r in rows),
                     "tactic": json.loads(active["genome"]) if active else None})
@@ -59,7 +60,8 @@ class H(BaseHTTPRequestHandler):
                 tried = core.db.execute("SELECT v FROM brain_led WHERE k='tried'").fetchone()
                 try: studied = core.db.execute("SELECT COUNT(*), SUM(learned) FROM studied").fetchone()
                 except Exception: studied = (0, 0)
-                st = {"bots": brain_summary(core), "tactics_tried": tried[0] if tried else 0,
+                brain_on = bool(os.environ.get("NVIDIA_API_KEY") or os.environ.get("GEMINI_API_KEY"))
+                st = {"bots": brain_summary(core), "tactics_tried": tried[0] if tried else 0, "brain_online": brain_on,
                       "studied_repos": studied[0] or 0, "learned_techniques": studied[1] or 0,
                       "range": RG.answer_key(os.path.join(HERE, "range_files")) or []}
                 core.close()

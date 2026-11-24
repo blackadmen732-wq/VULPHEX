@@ -152,3 +152,21 @@ class CoderAgentTest(unittest.TestCase):
         team = json.load(open(ROOT / "security/team.json"))["bots"]
         coders = [b["name"] for b in team if "agentic_coding" in b["capabilities"]]
         self.assertEqual(set(coders), {"FOX AUDITOR", "FOX FORGE", "FOX REAPER"})
+
+
+class CodingBrainTest(unittest.TestCase):
+    def test_a_successful_coding_run_rewards_the_bot_and_is_remembered(self):
+        import agent as AG
+        core = temp_core()
+        lines = [json.dumps({"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "Edit", "input": {"file_path": "x.py"}}]}}),
+                 json.dumps({"type": "result", "result": "Fixed it; tests pass."})]
+        AG_run = AG.run
+        AG.run = lambda *a, **k: {"ok": True, "summary": "Fixed it; tests pass.", "steps": [{"tool": "Edit"}]}
+        try:
+            d = tempfile.mkdtemp(); res = core.code("FOX FORGE", "fix the bug", cwd=d)
+        finally:
+            AG.run = AG_run
+        self.assertTrue(res["ok"])
+        row = core.db.execute("SELECT ok, bot FROM coder").fetchone()
+        self.assertEqual((row["ok"], row["bot"]), (1, "FOX FORGE"))        # remembered
+        self.assertGreaterEqual(core.db.execute("SELECT COUNT(*) FROM brain_pop WHERE bot='FOX FORGE'").fetchone()[0], 1)  # brain learned

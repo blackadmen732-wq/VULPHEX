@@ -38,6 +38,9 @@ def main(argv=None):
     sub.add_parser("findings", help="print the shared evidence database")
     sub.add_parser("audit", help="print the audit log of every task VULPHEX ran")
     sub.add_parser("bots", help="list the twelve FOX bots")
+    imp = sub.add_parser("improve", help="VULPHEX audits code, then FOX FORGE fixes the top issue with Claude's hands (learns from it)")
+    imp.add_argument("path", nargs="?", default="."); imp.add_argument("--bot", default="FOX FORGE")
+    sub.add_parser("coder-stats", help="how the coding bots are doing (success rate, learning)")
     ag = sub.add_parser("agent", help="give a bot Claude Code + the uncensored brain to do a task")
     ag.add_argument("bot"); ag.add_argument("mission"); ag.add_argument("--cwd", default=".")
     a = ap.parse_args(argv)
@@ -53,6 +56,22 @@ def main(argv=None):
         print(f"{len(rows)} audited task(s):")
         for r in rows: print(f"  {r['at']}  {r['bot']:14} {r['tool']:10} {r['risk']:11} {'in-scope' if r['in_scope'] else 'OUT-OF-SCOPE'}  {r['target']}")
         core.close(); return
+    if a.cmd == "coder-stats":
+        core = C.Core(scope=scope)
+        rows = core.db.execute("SELECT bot, COUNT(*) n, SUM(ok) ok, AVG(steps) st FROM coder GROUP BY bot").fetchall()
+        if not rows: print("No coding runs yet. Try:  python3 security/artex.py improve .")
+        for r in rows: print(f"  {r['bot']:14} {r['ok'] or 0}/{r['n']} fixes landed, avg {r['st']:.0f} steps")
+        core.close(); return
+    if a.cmd == "improve":
+        core = C.Core(scope=scope)
+        print(f"[FOX team] auditing {a.path} ...")
+        core.mission(a.path, want={"FOX AUDITOR", "FOX BASTION", "FOX PROOF"})
+        top = sorted(core.findings("verified") or core.findings(), key=lambda f: {"critical":0,"high":1,"medium":2,"low":3,"info":4}.get(f["severity"],9))
+        if not top: print("Nothing to fix. Clean."); core.close(); return
+        f = top[0]; print(f"[{a.bot}] fixing: [{f['severity'].upper()}] {f['title']} at {f['place']}\n")
+        mission = f"Fix this security finding: {f['title']} at {f['place']}. {f.get('detail','')}. Make the smallest safe change and verify it."
+        res = core.code(a.bot, mission, cwd=a.path, on_event=lambda k,v: print(f"  · {v if k=='say' else v.get('tool','')+' '+v.get('input','')}"[:140]))
+        core.close(); print("\n" + res["summary"]); return
     if a.cmd == "agent":
         core = C.Core(scope=scope)
         name = next((b["name"] for b in core.team if b["name"].upper() == a.bot.upper() or a.bot.lower() in b["name"].lower()), None)

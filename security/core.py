@@ -85,6 +85,8 @@ CREATE TABLE IF NOT EXISTS tasks    (id INTEGER PRIMARY KEY AUTOINCREMENT, bot T
                                      status TEXT, note TEXT, created TEXT);
 CREATE TABLE IF NOT EXISTS audit    (id INTEGER PRIMARY KEY AUTOINCREMENT, bot TEXT, capability TEXT, tool TEXT,
                                      target TEXT, risk TEXT, in_scope INTEGER, at TEXT);
+CREATE TABLE IF NOT EXISTS coder    (id INTEGER PRIMARY KEY AUTOINCREMENT, bot TEXT, skill TEXT, ok INTEGER,
+                                     steps INTEGER, summary TEXT, at TEXT);
 """
 
 
@@ -264,6 +266,12 @@ class Core:
         self.audit(bot_name, "agentic_coding", "coder", cwd, "read-only", int(os.path.exists(cwd)))
         res = AG.run(mission, cwd=cwd, skill=skill, bot=bot_name, on_event=on_event)
         self.log_task(bot_name, "agentic_coding", cwd, "done" if res["ok"] else "error", res["summary"][:200])
+        self.db.execute("INSERT INTO coder (bot,skill,ok,steps,summary,at) VALUES (?,?,?,?,?,?)",
+                        (bot_name, skill, int(res["ok"]), len(res.get("steps", [])), res["summary"][:300], now_iso())); self.db.commit()
+        # the neural-network brain learns from coding too: a successful, efficient fix is rewarded, a failure penalized
+        g = self.brain.active(bot_name)
+        reward = (5.0 - 0.1 * len(res.get("steps", []))) if res["ok"] else -2.0
+        self.brain.score(bot_name, g, reward)
         return res
 
     def close(self): self.db.close()

@@ -34,6 +34,25 @@ def brain_summary(core):
     return out
 
 
+
+
+def chat_model_status():
+    """Report configuration only; never imply a model is reachable before a request."""
+    router = C.ModelRouter()
+    name, model = router.pick("chat")
+    provider = model.get("provider", "local")
+    if provider == "nvidia":
+        configured = bool(os.environ.get("NVIDIA_API_KEY"))
+        hint = "Set NVIDIA_API_KEY on the Arena server and restart." if not configured else "Configured; send a message to test the connection."
+    elif provider == "gemini":
+        configured = bool(os.environ.get("GEMINI_API_KEY"))
+        hint = "Set GEMINI_API_KEY on the Arena server and restart." if not configured else "Configured; send a message to test the connection."
+    else:
+        configured = True  # Local availability cannot be known without loading the model.
+        hint = "Local model selected; send a message to check whether it loads."
+    return {"provider": provider, "model": model.get("model", ""), "configured": configured,
+            "status": "not_tested" if configured else "needs_configuration", "hint": hint}
+
 def allowed(h):
     # the Arena is opened through the Kaggle tunnel (a random, unguessable https URL), so the host varies. Allow it;
     # only require JSON on POSTs. The random URL is the gate (same as Mira's brain tunnel).
@@ -53,6 +72,8 @@ class H(BaseHTTPRequestHandler):
         if not allowed(self): return self._send(403, {"error": "forbidden"})
         if self.path in ("/", "/index.html"):
             return self._send(200, open(os.path.join(HERE, "index.html"), "rb").read(), "text/html; charset=utf-8")
+        if self.path == "/api/brain-status":
+            return self._send(200, chat_model_status())
         if self.path == "/api/state":
             with LOCK:
                 core = new_core()
@@ -83,12 +104,16 @@ class H(BaseHTTPRequestHandler):
             return self._send(200, {"history": hist})
         if self.path == "/api/ask":
             q = str(body.get("text", "")).strip()[:2000]
-            if not q: return self._send(400, {"error": "say something"})
+            if not q: return self._send(400, {"error": "Enter a question."})
+            status = chat_model_status()
+            if not status["configured"]:
+                return self._send(503, {"error": status["hint"], "code": "model_unavailable"})
             with LOCK:
-                core = new_core(); ans = core.router.ask("chat", _persona(q), max_new_tokens=220); core.close()
+                core = new_core()
+                try: ans = core.router.ask("chat", _persona(q), max_new_tokens=220)
+                finally: core.close()
             if not ans:
-                ans = ("(The ancestor model isn't loaded here. On a machine with the model downloaded it answers as the "
-                       "uncensored brain. Set COACH_MODEL to the abliterated Qwen and run the arena there.)")
+                return self._send(503, {"error": "The configured model did not respond. Check provider connectivity, model availability and server logs.", "code": "model_unavailable"})
             return self._send(200, {"answer": ans})
         return self._send(404, {"error": "not found"})
 

@@ -41,6 +41,7 @@ def main(argv=None):
     imp = sub.add_parser("improve", help="VULPHEX audits code, then FOX FORGE fixes the top issue with Claude's hands (learns from it)")
     imp.add_argument("path", nargs="?", default="."); imp.add_argument("--bot", default="FOX FORGE")
     sub.add_parser("coder-stats", help="how the coding bots are doing (success rate, learning)")
+    sub.add_parser("study", help="the bots study every repo and learn its technique into the neural network")
     ag = sub.add_parser("agent", help="give a bot Claude Code + the uncensored brain to do a task")
     ag.add_argument("bot"); ag.add_argument("mission"); ag.add_argument("--cwd", default=".")
     a = ap.parse_args(argv)
@@ -56,6 +57,17 @@ def main(argv=None):
         print(f"{len(rows)} audited task(s):")
         for r in rows: print(f"  {r['at']}  {r['bot']:14} {r['tool']:10} {r['risk']:11} {'in-scope' if r['in_scope'] else 'OUT-OF-SCOPE'}  {r['target']}")
         core.close(); return
+    if a.cmd == "study":
+        import study as ST
+        core = C.Core(scope=scope)
+        ask = None
+        try:
+            if core.router.ask("study", "ping", max_new_tokens=3) is not None:
+                ask = lambda q: core.router.ask("study", q, max_new_tokens=60)
+        except Exception: pass
+        print("Studying the repos" + ("" if ask else " (no model loaded — records them to study; run on Kaggle with the brain to learn)") + " ...")
+        res = ST.run(core, ask=ask, on_event=lambda r: print(f"  · {r['bot']:12} learned from {r['repo'][:40]}: {r['technique'][:70]}"))
+        core.close(); print(f"\nStudied {res['studied']} repos, learned {res['learned']} techniques into the brain."); return
     if a.cmd == "coder-stats":
         core = C.Core(scope=scope)
         rows = core.db.execute("SELECT bot, COUNT(*) n, SUM(ok) ok, AVG(steps) st FROM coder GROUP BY bot").fetchall()

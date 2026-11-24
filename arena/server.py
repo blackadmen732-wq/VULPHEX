@@ -59,7 +59,10 @@ class H(BaseHTTPRequestHandler):
             with LOCK:
                 core = new_core()
                 tried = core.db.execute("SELECT v FROM brain_led WHERE k='tried'").fetchone()
+                try: studied = core.db.execute("SELECT COUNT(*), SUM(learned) FROM studied").fetchone()
+                except Exception: studied = (0, 0)
                 st = {"bots": brain_summary(core), "tactics_tried": tried[0] if tried else 0,
+                      "studied_repos": studied[0] or 0, "learned_techniques": studied[1] or 0,
                       "range": RG.answer_key(os.path.join(HERE, "range_files")) or []}
                 core.close()
             return self._send(200, st)

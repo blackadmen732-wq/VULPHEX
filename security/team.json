@@ -1,0 +1,14 @@
+{
+  "_help": "VULPHEX's 9 AI security agents. Each wraps ONE real tool. kind=local runs on code/files you own (always allowed). kind=active reaches a target over the network and ONLY runs when the target is in scope.json AND you approve. The planner and report writer use the same uncensored model as the trading bots.",
+  "agents": [
+    {"name": "Cinder",  "role": "Source-code security auditor",        "tool": "semgrep",   "kind": "local",  "finds": "insecure code patterns"},
+    {"name": "Vault",   "role": "Secret and key hunter",               "tool": "gitleaks",  "kind": "local",  "finds": "exposed passwords, API keys, tokens"},
+    {"name": "Sieve",   "role": "Dependency and container auditor",    "tool": "trivy",     "kind": "local",  "finds": "known-vulnerable libraries and images"},
+    {"name": "Warden",  "role": "Web application scanner",             "tool": "zap",       "kind": "active", "finds": "web app weaknesses (XSS, injection, headers)"},
+    {"name": "Probe",   "role": "Template vulnerability checker",      "tool": "nuclei",    "kind": "active", "finds": "known CVEs and misconfigurations on a host"},
+    {"name": "Scout",   "role": "Asset and attack-surface mapper",     "tool": "recon",     "kind": "active", "finds": "open ports and exposed services"},
+    {"name": "Mirror",  "role": "AI model red-teamer",                 "tool": "garak",     "kind": "active", "finds": "jailbreaks and unsafe outputs in an LLM"},
+    {"name": "Crucible","role": "AI system security tester",           "tool": "pyrit",     "kind": "active", "finds": "prompt-injection and abuse paths in an AI app"},
+    {"name": "Ward",    "role": "AI app security regression tester",   "tool": "promptfoo", "kind": "local",  "finds": "security checks that must keep passing"}
+  ]
+}

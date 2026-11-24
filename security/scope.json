@@ -1,0 +1,7 @@
+{
+  "_help": "ONLY targets you own or have written permission to test. VULPHEX refuses every active (network) scan whose target is not matched here. Local code audits run on your own files and need no entry. hosts: exact hostnames or IPs; globs allowed (*.example.com). paths: local folders the active tools may read (e.g. a ZAP context).",
+  "owner": "",
+  "authorization_note": "",
+  "hosts": [],
+  "allow_private_ranges": false
+}

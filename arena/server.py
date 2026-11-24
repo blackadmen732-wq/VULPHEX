@@ -35,11 +35,8 @@ def brain_summary(core):
 
 
 def allowed(h):
-    # the Arena is meant to be opened through the Kaggle tunnel (a random, unguessable https URL), so allow that host;
-    # still keep localhost, and require JSON on POSTs.
-    host = (h.headers.get("host") or "").lower()
-    ok_host = host in (f"localhost:{PORT}", f"127.0.0.1:{PORT}", f"[::1]:{PORT}") or host.endswith(".trycloudflare.com") or host == os.environ.get("VULPHEX_PUBLIC_HOST", "")
-    if not ok_host: return False
+    # the Arena is opened through the Kaggle tunnel (a random, unguessable https URL), so the host varies. Allow it;
+    # only require JSON on POSTs. The random URL is the gate (same as Mira's brain tunnel).
     if h.command == "POST" and not (h.headers.get("content-type") or "").startswith("application/json"): return False
     return True
 

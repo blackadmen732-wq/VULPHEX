@@ -149,6 +149,10 @@
     <div class="view on" id="v-training">
       <div class="card pad">
         <div class="title"><div class="ic">⚡</div><div><h1>Training arena</h1><p>Run controlled simulations and watch your squad learn.</p></div></div>
+        <div class="card" style="margin-top:14px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:10px;left:14px;z-index:2;font-size:11px;letter-spacing:.14em;color:var(--dim);font-weight:700">LIVE ARENA <span id="floorstate" style="color:var(--gold)"></span></div>
+          <canvas id="floor" style="height:200px"></canvas>
+        </div>
         <div class="tiles">
           <div class="tile g"><div class="ti">👥</div><div><div class="big" id="t-sel">0/6</div><div class="lab">Selected</div></div></div>
           <div class="tile"><div class="ti">📚</div><div><div class="big" id="t-rounds">0</div><div class="lab">Training rounds</div></div></div>
@@ -319,6 +323,7 @@
   $('#train').onclick=async()=>{
     if(!pick.size)return flash('Pick at least one bot.');
     if(training)return; training=true;$('#train').disabled=true;$('#status').textContent='training…';
+    floor.on=true;floor.target=100;$('#floorstate').textContent='· breaching the target…';const _hit=setInterval(floorHit,650);
     document.querySelectorAll('.bot.pick').forEach(e=>e.classList.add('training'));
     const res=await api('/api/train',{squad:[...pick],rounds:+$('#rounds').value});
     const h=res.history||[];lastHist=h;state.total_rounds=(state.total_rounds||0)+h.length;
@@ -328,6 +333,7 @@
     $('#t-trend').textContent=(trend>=0?'+':'')+trend.toFixed(1);
     $('#status').textContent=`done · trend ${trend>=0?'+':''}${trend.toFixed(1)}`;
     document.querySelectorAll('.bot.training').forEach(e=>e.classList.remove('training'));
+    clearInterval(_hit);floor.on=false;$('#floorstate').textContent='· breach complete';
     training=false;$('#train').disabled=false;await refresh();chart(h);roundsTable(h);
   };
   function flash(t){$('#status').textContent=t;setTimeout(()=>{if(!training)$('#status').textContent='';},2500);}
@@ -337,6 +343,48 @@
     document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x===b));
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
     $('#v-'+b.dataset.v).classList.add('on');drawAll();if(b.dataset.v==='training'&&lastHist.length)chart(lastHist);};
+
+  // ---- LIVE ARENA: watch the squad attack the target while training
+  const floor={on:false,target:100,hits:[],parts:[],msg:'',t:0};
+  const VULNS=['SQL injection','open port','leaked key','XSS','weak dependency','misconfig','prompt injection','auth bypass'];
+  function foxPos(i,n){const a=-Math.PI/2+i*2*Math.PI/Math.max(1,n);return {a};}
+  function drawFloor(){
+    const c=$('#floor');if(!c)return;const ctx=c.getContext('2d'),W=c.width=c.clientWidth*2,H=c.height=400;
+    ctx.clearRect(0,0,W,H);const cx=W/2,cy=H/2+10,R=Math.min(W,H)*0.32;
+    // target (the system under test)
+    const integ=floor.target/100; ctx.save();
+    ctx.shadowColor=floor.on?'#ff5468':'#2a2f3a';ctx.shadowBlur=floor.on?24:8;
+    ctx.fillStyle='#11131a';ctx.strokeStyle=floor.on?'#ff5468':'#3a4150';ctx.lineWidth=4;
+    ctx.beginPath();ctx.roundRect(cx-46,cy-46,92,92,16);ctx.fill();ctx.stroke();ctx.restore();
+    ctx.fillStyle='#8b93a7';ctx.font='bold 26px ui-sans-serif';ctx.textAlign='center';ctx.fillText('🎯',cx,cy+2);
+    // integrity bar
+    ctx.fillStyle='#ffffff14';ctx.fillRect(cx-46,cy+54,92,8);ctx.fillStyle=integ>.5?'#35e0a0':integ>.25?'#ffd23f':'#ff5468';
+    ctx.fillRect(cx-46,cy+54,92*integ,8);ctx.textAlign='left';ctx.fillStyle='#8b93a7';ctx.font='18px ui-monospace';
+    ctx.fillText('system integrity '+Math.round(floor.target)+'%',cx-46,cy+84);
+    // foxes
+    const squad=bots.filter(b=>pick.has(b.name));
+    squad.forEach((b,i)=>{const p=foxPos(i,squad.length);const dash=floor.on&&(Math.sin(floor.t/9+i*2)>0.6)?10:0;
+      const x=cx+Math.cos(p.a)*(R+dash*2),y=cy+Math.sin(p.a)*(R+dash*2);
+      // beam when attacking
+      if(floor.on&&dash){ctx.strokeStyle=b.color+'cc';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,y);
+        ctx.lineTo(cx+(Math.random()-.5)*60,cy+(Math.random()-.5)*60);ctx.stroke();}
+      ctx.save();ctx.translate(x,y);ctx.fillStyle=b.color;ctx.strokeStyle='#0e0f14';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(0,0,16,0,7);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#0e0f14';ctx.font='bold 16px ui-sans-serif';ctx.textAlign='center';ctx.fillText('🦊',0,5);ctx.restore();});
+    // hit particles + floating text
+    for(const h of floor.parts){ctx.globalAlpha=Math.max(0,h.life/30);ctx.fillStyle=h.c;ctx.beginPath();ctx.arc(h.x,h.y,h.r,0,7);ctx.fill();ctx.globalAlpha=1;h.x+=h.vx;h.y+=h.vy;h.life--;}
+    floor.parts=floor.parts.filter(h=>h.life>0);
+    for(const m of floor.hits){ctx.globalAlpha=Math.max(0,m.life/60);ctx.fillStyle='#35e0a0';ctx.font='bold 20px ui-sans-serif';ctx.textAlign='center';ctx.fillText(m.txt,m.x,m.y);m.y-=1.2;m.life--;ctx.globalAlpha=1;}
+    floor.hits=floor.hits.filter(m=>m.life>0);
+    floor.t++;requestAnimationFrame(drawFloor);
+  }
+  function floorHit(){const c=$('#floor'),W=c.width,H=c.height,cx=W/2,cy=H/2+10;
+    const v=VULNS[Math.floor(Math.random()*VULNS.length)];
+    floor.hits.push({txt:'FOUND: '+v,x:cx,y:cy-56,life:60});
+    for(let k=0;k<14;k++)floor.parts.push({x:cx,y:cy,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8,r:2+Math.random()*3,c:'#35e0a0',life:30});
+    floor.target=Math.max(5,floor.target-6);
+  }
+  requestAnimationFrame(drawFloor);
 
   async function refresh(){try{state=await api('/api/state');bots=state.bots||[];brainStatus();drawAll();}catch{}}
   refresh();setInterval(refresh,15000);

@@ -17,8 +17,32 @@ DB = os.path.join(ROOT, "security", "vulphex.db")
 LOCK = threading.Lock()
 
 
-def new_core():
-    return C.Core(db_path=DB, scope=json.load(open(os.path.join(ROOT, "security", "scope.json"))))
+import threading as _th
+_CORE = None
+BRAIN = {"ready": False, "loading": False, "err": ""}
+
+def core():
+    """One shared Core for the whole server: the uncensored model loads ONCE on the GPU and stays — it is NOT reloaded
+    per request (that was why the chat looked dead). Mark's weak Chromebook carries nothing; this runs on the server."""
+    global _CORE
+    if _CORE is None:
+        _CORE = C.Core(db_path=DB, scope=json.load(open(os.path.join(ROOT, "security", "scope.json"))))
+    return _CORE
+
+
+def warm():
+    """Load the brain once in the background so the first chat is instant-ish. NVIDIA (if a key is set) needs no load."""
+    if BRAIN["ready"] or BRAIN["loading"]: return
+    BRAIN["loading"] = True
+    def go():
+        try:
+            ans = core().router.ask("chat", "Say READY in one word.", max_new_tokens=8)
+            BRAIN["ready"] = bool(ans); BRAIN["err"] = "" if ans else "model returned nothing"
+        except Exception as e:
+            BRAIN["err"] = str(e)[:120]
+        finally:
+            BRAIN["loading"] = False
+    _th.Thread(target=go, daemon=True).start()
 
 
 def brain_summary(core):
@@ -55,16 +79,17 @@ class H(BaseHTTPRequestHandler):
         if self.path in ("/", "/index.html"):
             return self._send(200, open(os.path.join(HERE, "index.html"), "rb").read(), "text/html; charset=utf-8")
         if self.path == "/api/state":
+            warm()
             with LOCK:
-                core = new_core()
-                tried = core.db.execute("SELECT v FROM brain_led WHERE k='tried'").fetchone()
-                try: studied = core.db.execute("SELECT COUNT(*), SUM(learned) FROM studied").fetchone()
+                c = core()
+                tried = c.db.execute("SELECT v FROM brain_led WHERE k='tried'").fetchone()
+                try: studied = c.db.execute("SELECT COUNT(*), SUM(learned) FROM studied").fetchone()
                 except Exception: studied = (0, 0)
-                brain_on = bool(os.environ.get("NVIDIA_API_KEY") or os.environ.get("GEMINI_API_KEY"))
-                st = {"bots": brain_summary(core), "tactics_tried": tried[0] if tried else 0, "brain_online": brain_on,
+                brain_on = BRAIN["ready"] or bool(os.environ.get("NVIDIA_API_KEY") or os.environ.get("GEMINI_API_KEY"))
+                st = {"bots": brain_summary(c), "tactics_tried": tried[0] if tried else 0,
+                      "brain_online": brain_on, "brain_loading": BRAIN["loading"] and not brain_on, "brain_err": BRAIN["err"],
                       "studied_repos": studied[0] or 0, "learned_techniques": studied[1] or 0,
                       "range": RG.answer_key(os.path.join(HERE, "range_files")) or []}
-                core.close()
             return self._send(200, st)
         return self._send(404, {"error": "not found"})
 
@@ -78,19 +103,20 @@ class H(BaseHTTPRequestHandler):
             squad = [str(x) for x in (body.get("squad") or [])][:6]
             rounds = max(1, min(int(body.get("rounds") or 20), 200))
             with LOCK:
-                core = new_core()
                 RG.build(os.path.join(HERE, "range_files"))
-                hist = TR.train(core, squad, rounds=rounds, range_dir=os.path.join(HERE, "range_files"))
-                core.close()
+                hist = TR.train(core(), squad, rounds=rounds, range_dir=os.path.join(HERE, "range_files"))
             return self._send(200, {"history": hist})
         if self.path == "/api/ask":
             q = str(body.get("text", "")).strip()[:2000]
             if not q: return self._send(400, {"error": "say something"})
-            with LOCK:
-                core = new_core(); ans = core.router.ask("chat", _persona(q), max_new_tokens=220); core.close()
-            if not ans:
-                ans = ("(The ancestor model isn't loaded here. On a machine with the model downloaded it answers as the "
-                       "uncensored brain. Set COACH_MODEL to the abliterated Qwen and run the arena there.)")
+            warm()
+            try: ans = core().router.ask("chat", _persona(q), max_new_tokens=240)
+            except Exception as e: ans = None; BRAIN["err"] = str(e)[:120]
+            if ans: BRAIN["ready"] = True
+            else:
+                ans = ("The brain is still loading on the server" + (f" ({BRAIN['err']})" if BRAIN["err"] else "") +
+                       ". Give it a minute and ask again — the uncensored model runs on the GPU here, not your computer. "
+                       "For instant answers, add your NVIDIA_API_KEY as a Kaggle Secret.")
             return self._send(200, {"answer": ans})
         return self._send(404, {"error": "not found"})
 
@@ -104,6 +130,7 @@ def _persona(q):
 def main():
     srv = ThreadingHTTPServer(("127.0.0.1", PORT), H)
     print(f"VULPHEX Arena: http://localhost:{PORT}  (Ctrl+C to close)", flush=True)
+    warm()                                                   # start loading the brain on the GPU right away
     try: srv.serve_forever()
     except KeyboardInterrupt: pass
 

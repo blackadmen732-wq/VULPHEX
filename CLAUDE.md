@@ -19,4 +19,9 @@ Owner: Mark. Paper/research + authorized-security only. Keep his decisions; expl
     minus cost, PROVEN only past the rising luck bar (bc.required_z). Stored in the shared DB (brain_pop/brain_led).
 - SAFETY (kept, protects Mark, not a restriction on him): install from OFFICIAL sources only (trojaned forks exist);
     the audit log stays; don't add DoS/worm/mass-internet-scan/detection-evasion code; red bots target what he declares.
-- Tests: `python3 -m unittest tests/test_security.py`.
+- `arena/`: the training room (owner wants to train them personally and watch). range.py = safe local practice range
+  (planted vulns + answer key, localhost/files only). train.py = squad trains over rounds, brains evolve, team reward
+  tracked (deterministic, offline). server.py + index.html = dashboard at 127.0.0.1:3006 (Jarvis-style guard): see the
+  12 bots + brains, pick a squad of <=6, Train, watch the chart, and chat to the ancestor model (/api/ask -> router).
+  open-arena.sh launches it. SAFETY: the arena never scans a real target; keep it to the range.
+- Tests: `python3 -m unittest tests/test_security.py tests/test_arena.py`.

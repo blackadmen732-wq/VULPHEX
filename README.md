@@ -47,3 +47,14 @@ python3 security/artex.py mission your-own-host.com     # full team (declare it 
 python3 security/artex.py findings                      # shared evidence database
 python3 security/artex.py audit                         # audit log of every task
 ```
+
+## Train them yourself — the Arena
+A local training room (a tab in your browser) to watch the brain learn and talk to the ancestor model:
+```bash
+bash arena/open-arena.sh          # opens http://localhost:3006
+```
+- Pick up to **six** FOX bots (a squad that learns to operate together — attack + defend).
+- **Train** them against a safe local practice range (`arena/range.py`: planted vulnerabilities on your own machine,
+  never the internet). Watch the team's reward climb and tactics get **proven** by the luck filter.
+- **Talk to the ancestor brain** (the uncensored model) on the right — ask how to attack or defend your systems.
+Nothing in the Arena touches a real target; it is a lab for understanding and training the squad.

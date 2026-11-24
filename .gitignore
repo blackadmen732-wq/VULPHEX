@@ -5,4 +5,5 @@ state/
 report.md
 security-report.md
 security/vulphex.db
+arena/range_files/
 *.tmp

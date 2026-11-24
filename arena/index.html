@@ -1,153 +1,348 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>VULPHEX Arena</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0f16">
+<title>VULPHEX | Training Arena</title>
 <style>
-  :root { --bg:#070a0f; --panel:rgba(255,255,255,.035); --line:rgba(255,255,255,.09); --text:#e7ecf3; --dim:#8894a6;
-          --blue:#3ea8ff; --red:#ff5468; --green:#38e0a0; --amber:#ffc24b; }
-  * { box-sizing:border-box; }
-  html,body { margin:0; height:100%; background:radial-gradient(1100px 600px at 70% -10%, #11203a 0%, var(--bg) 55%); color:var(--text);
-              font:14px/1.5 ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif; }
-  body { display:grid; grid-template-rows:auto 1fr; }
-  header { display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:1px solid var(--line); }
-  .logo { font-weight:800; letter-spacing:.34em; }
-  .logo b { color:var(--red); }
-  header .dim { color:var(--dim); font-size:12px; }
-  header .grow { flex:1; }
-  main { display:grid; grid-template-columns:340px 1fr 360px; gap:14px; padding:14px 18px; min-height:0; }
-  .col { display:flex; flex-direction:column; gap:12px; min-height:0; }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; }
-  h2 { margin:0 0 8px; font-size:11px; letter-spacing:.2em; color:var(--dim); font-weight:600; }
-  .bots { overflow:auto; }
-  .bot { display:flex; align-items:center; gap:9px; padding:8px 9px; border:1px solid var(--line); border-radius:10px; margin:5px 0; cursor:pointer; }
-  .bot:hover { border-color:var(--dim); }
-  .bot.pick { border-color:var(--green); background:rgba(56,224,160,.08); }
-  .bot .dot { width:9px; height:9px; border-radius:50%; flex:none; }
-  .bot.blue .dot { background:var(--blue); } .bot.red .dot { background:var(--red); }
-  .bot .nm { font-weight:600; } .bot .ro { color:var(--dim); font-size:12px; }
-  .bot .meta { margin-left:auto; text-align:right; font-size:11px; color:var(--dim); }
-  .bot .meta .pz { color:var(--green); }
-  .stage { flex:1; display:flex; flex-direction:column; min-height:0; }
-  .controls { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-  .btn { background:linear-gradient(135deg, var(--blue), #2b6fff); color:#fff; border:0; border-radius:10px; padding:9px 16px; font:inherit; font-weight:600; cursor:pointer; }
-  .btn.ghost { background:var(--panel); color:var(--text); border:1px solid var(--line); }
-  .btn:disabled { opacity:.5; cursor:default; }
-  input[type=range] { accent-color:var(--blue); }
-  canvas { width:100%; height:240px; display:block; margin-top:6px; }
-  .roundlog { flex:1; overflow:auto; font:12px/1.5 ui-monospace, Menlo, monospace; color:#aeb6c6; }
-  .roundlog .r { padding:2px 0; border-bottom:1px solid rgba(255,255,255,.04); }
-  .roundlog b { color:var(--green); }
-  .chat { flex:1; display:flex; flex-direction:column; min-height:0; }
-  .msgs { flex:1; overflow:auto; } .msg { margin:8px 0; } .msg .who { font-size:10px; letter-spacing:.15em; color:var(--dim); }
-  .msg.you .t { color:#cfe; } .msg.brain .t { white-space:pre-wrap; }
-  .ask { display:flex; gap:8px; margin-top:8px; } .ask input { flex:1; background:var(--panel); border:1px solid var(--line); color:var(--text); border-radius:10px; padding:10px; font:inherit; }
-  .pill { font-size:11px; color:var(--dim); border:1px solid var(--line); border-radius:99px; padding:3px 9px; }
-  @media (max-width: 1100px){ main{ grid-template-columns:1fr; } }
+:root{color-scheme:dark;--bg:#090f16;--panel:#111a25;--panel2:#15202e;--border:#263445;--text:#edf3f9;--muted:#97a8bb;--cyan:#35d4b2;--blue:#398dff;--gold:#e8b65b;--red:#f0787b;--shadow:0 8px 30px rgba(0,0,0,.12)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;background:radial-gradient(900px 480px at 65% -18%,#193149 0%,var(--bg) 76%);color:var(--text);font:14px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.topbar{height:68px;padding:0 clamp(16px,2vw,32px);display:flex;align-items:center;gap:26px;border-bottom:1px solid var(--border);background:rgba(8,13,20,.92)}
+.brand{display:flex;align-items:center;gap:12px;color:var(--text);text-decoration:none;font-size:18px;font-weight:850;letter-spacing:.17em}
+.brandmark{width:30px;height:22px;display:flex;gap:5px;transform:skew(-22deg)}
+.brandmark i{width:12px;height:16px;margin-top:3px;background:var(--gold);border-radius:2px}
+.brandmark i:last-child{height:12px;margin-top:7px}
+.brandsep{width:1px;height:25px;background:var(--border);margin:0 4px}
+.brand small{font-size:12px;font-weight:700;letter-spacing:.3em;color:var(--muted)}
+nav{display:flex;align-items:center;gap:6px}
+nav a{color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;padding:9px 12px;border-radius:8px}
+nav a:hover,nav a.active{color:var(--text);background:#1d2a3b}
+.headerend{margin-left:auto;display:flex;align-items:center;gap:12px;white-space:nowrap}
+.chip{padding:5px 10px;border-radius:99px;border:1px solid var(--border);font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.02em}
+.chip.amber{color:var(--gold);border-color:#5e4930;background:#30241555}
+.chip.good{color:var(--cyan);border-color:#245e54;background:#0a342b66}
+.chip.bad{color:var(--red);border-color:#6f353a;background:#4a22274a}
+.layout{max-width:1920px;margin:0 auto;padding:18px;display:grid;grid-template-columns:280px minmax(0,1fr) 320px;gap:18px;align-items:start}
+.panel{min-width:0;background:linear-gradient(160deg,rgba(19,29,41,.99),rgba(15,23,33,.99));border:1px solid var(--border);box-shadow:var(--shadow);border-radius:14px}
+.sidebar{padding:16px;position:sticky;top:18px;max-height:calc(100vh - 104px);display:flex;flex-direction:column;gap:10px}
+.sidebar-scroll{overflow:auto;min-height:0;scrollbar-color:#2b4254 transparent;padding-right:2px}
+.sectionheading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sectionheading h2{font-size:16px;font-weight:750;margin:0}
+.sectionnote{font-size:12px;color:var(--muted);margin:3px 0 0}
+.grouphead{margin:16px 0 8px;display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:800}
+.grouphead.red{color:#e69ca3}
+.grouphead:first-child{margin-top:0}
+.botrow{width:100%;background:transparent;color:var(--text);border:1px solid transparent;display:flex;align-items:center;text-align:left;gap:10px;padding:7px 8px;border-radius:9px;margin:2px 0}
+.botrow:hover{border-color:#3b5065;background:#1b2a37}
+.botrow.picked{border-color:#266d5c;background:#12352e77}
+.botrow.red.picked{border-color:#75414e;background:#45252a77}
+.avatar{width:36px;height:36px;flex:none;border-radius:8px;display:grid;place-items:center;background:#192d37;border:1px solid #34505d}
+.avatar svg{width:34px;height:34px}
+.bottext{min-width:0;flex:1}
+.bottext strong{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.01em}
+.bottext small{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.pickbox{width:18px;height:18px;border:1px solid #637084;border-radius:5px;display:grid;place-items:center;color:#06221f;font-size:13px;font-weight:900}
+.picked .pickbox{background:var(--cyan);border-color:var(--cyan)}
+.botrow.red.picked .pickbox{background:#ff8b89;border-color:#ff8b89}
+.botmeta{font-size:10px;color:var(--muted);margin:0 0 3px 54px}
+.botmeta b{font-weight:600;color:var(--cyan)}
+.workspace{display:flex;flex-direction:column;gap:14px;min-width:0}
+.hero{padding:6px 2px 2px}
+.eyebrow{color:var(--gold);font-size:11px;letter-spacing:.13em;text-transform:uppercase;font-weight:800}
+.hero h1{margin:0;font-size:26px;letter-spacing:-.035em;font-weight:800}
+.hero p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.metric{padding:15px 14px;min-height:105px}
+.metric label{display:block;font-size:11px;color:var(--muted);font-weight:700}
+.metric strong{display:block;font-size:29px;letter-spacing:-.05em;line-height:1.25;margin:8px 0 2px}
+.metric small{color:var(--muted);font-size:10px}
+.metric.primary{border-color:#307260;background:linear-gradient(130deg,#12332e,#131d28)}
+.metric.primary strong,.metric.trend strong{color:var(--cyan)}
+.chartpanel{padding:17px 18px 15px}
+.cardheading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.cardheading h2{font-size:15px;margin:0;font-weight:750}
+.legend{display:flex;align-items:center;gap:14px;font-size:11px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cyan)}
+.legend span:last-child i{background:#53708a}
+.chartwrap{position:relative;height:225px}
+#chart{display:block;width:100%;height:100%}
+.emptychart{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--muted);font-size:13px;padding:24px;pointer-events:none}
+.emptychart strong{display:block;color:var(--text);font-size:15px;margin-bottom:4px}
+.controls{padding-top:15px;margin-top:4px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{border:1px solid transparent;background:var(--blue);border-radius:9px;color:white;font-weight:750;padding:9px 14px;font-size:12px;min-height:38px}
+.btn:hover{filter:brightness(1.1)}
+.btn.secondary{border-color:var(--border);background:#1a2635;color:var(--text)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.roundcontrol{display:flex;align-items:center;gap:9px;margin-left:5px;color:var(--muted);font-size:12px}
+.roundcontrol input{width:100px;accent-color:var(--blue)}
+.roundcontrol output{color:var(--text);font-weight:800;min-width:25px}
+.progress{margin-left:auto;color:var(--muted);font-size:11px}
+.progress.ok{color:var(--cyan)}.progress.error{color:var(--red)}
+.bottomgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.datapanel{padding:15px 16px;min-width:0}
+.table{width:100%;border-collapse:collapse;text-align:left}
+.table th{font-size:10px;color:var(--muted);font-weight:700;background:#192535;padding:7px 8px}
+.table td{padding:8px;font-size:12px;border-bottom:1px solid var(--border)}
+.table tr:last-child td{border-bottom:0}
+.table td.ok{color:var(--cyan);font-weight:700}
+.table .subtle{color:var(--muted)}
+.noresults{color:var(--muted);padding:23px 5px;font-size:12px}
+.footnote{font-size:11px;color:var(--muted);padding:0 4px}
+.brain{padding:16px;position:sticky;top:18px;min-height:min(745px,calc(100vh - 108px));max-height:calc(100vh - 104px);display:flex;flex-direction:column;gap:12px}
+.brainhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.brainhead h2{margin:0;font-size:16px}
+.brainhead p{margin:2px 0 0;color:var(--muted);font-size:11px}
+.brainhero{text-align:center;padding:12px 0 10px}
+.brainhero .avatar{width:94px;height:94px;margin:auto;border-radius:18px;background:radial-gradient(circle,#203647,#111a25);border-color:#365265}
+.brainhero .avatar svg{width:82px;height:82px}
+.brainsetup{padding:13px;background:#182536;border:1px solid var(--border);border-radius:12px;color:#c9d6e4;font-size:12px}
+.brainsetup strong{display:block;color:var(--text);margin-bottom:5px}
+.brainsetup code{font-size:11px;color:var(--gold);word-break:break-word}
+.msgs{flex:1;min-height:100px;overflow:auto;display:flex;flex-direction:column;gap:10px;scrollbar-color:#2b4254 transparent}
+.message{font-size:12px;padding:10px 11px;background:#1a2838;border:1px solid var(--border);border-radius:10px;overflow-wrap:anywhere;white-space:pre-wrap}
+.message.user{background:#123a33;border-color:#24665a;margin-left:15px}
+.message small{display:block;color:var(--muted);font-size:10px;margin-bottom:4px;text-transform:uppercase;letter-spacing:.09em}
+.message.error{border-color:#743e46}
+.ask{display:flex;gap:8px;margin-top:auto}
+.ask input{background:#0d1722;border:1px solid var(--border);color:var(--text);min-width:0;flex:1;border-radius:9px;padding:10px;font-size:12px}
+.ask input::placeholder{color:#74869a}
+.smallhint{margin:0;color:var(--muted);font-size:10px}
+@media(max-width:1380px){.layout{grid-template-columns:250px minmax(0,1fr) 280px;gap:12px;padding:12px}.sidebar,.brain{padding:12px}.metrics{gap:8px}.metric{padding:13px 10px}}
+@media(max-width:1120px){.layout{grid-template-columns:240px minmax(0,1fr)}.brain{position:static;grid-column:2;min-height:430px;max-height:none}.sidebar{max-height:none}.headerend .chip:first-child{display:none}.bottomgrid{grid-template-columns:1fr 1fr}}
+@media(max-width:780px){.layout{display:flex;flex-direction:column}.layout>*{width:100%}.sidebar{position:static;max-height:none}.sidebar-scroll{max-height:365px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.bottomgrid{grid-template-columns:1fr}.topbar{gap:10px;padding:0 14px}.brand{font-size:15px}.brand small,.brandsep,nav{display:none}.headerend{gap:6px}.roundcontrol{margin-left:0}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-<header>
-  <div class="logo">V U L P <b>H</b> E X · ARENA</div>
-  <span class="pill" id="tried">tactics tried: –</span>
-  <div class="grow"></div>
-  <span class="dim">pick up to 6 bots → Train → watch them learn. Practice range only.</span>
+<header class="topbar">
+  <a href="#training" class="brand" aria-label="VULPHEX Arena"><span class="brandmark" aria-hidden="true"><i></i><i></i></span>VULPHEX<span class="brandsep"></span><small>ARENA</small></a>
+  <nav aria-label="Arena sections"><a href="#roster">Bots</a><a class="active" href="#training">Training</a><a href="#activity">Results</a><a href="#assistant">Ancestor Brain</a></nav>
+  <div class="headerend"><span class="chip amber">◇ SIMULATION ONLY</span><span class="chip" id="topbrain">Brain: checking…</span></div>
 </header>
-<main>
-  <section class="col">
-    <div class="card bots" style="flex:1">
-      <h2>THE TWELVE FOX BOTS <span id="pickn" style="color:var(--green)"></span></h2>
-      <div id="botlist"></div>
-    </div>
-  </section>
-
-  <section class="col">
-    <div class="card stage">
-      <h2>TRAINING — TEAM REWARD OVER ROUNDS</h2>
+<main class="layout">
+  <aside class="panel sidebar" id="roster">
+    <div class="sectionheading"><div><h2>Bot roster</h2><p class="sectionnote">Choose up to six for your squad</p></div><span class="chip good" id="pickn">6/6</span></div>
+    <div class="sidebar-scroll" id="botlist" aria-label="Choose a squad"></div>
+  </aside>
+  <section class="workspace" id="training">
+    <div class="hero"><span class="eyebrow">◆ Practice range</span><h1>Training arena</h1><p>Run controlled simulations. Track playbook learning and squad performance.</p></div>
+    <section class="metrics" aria-label="Training overview">
+      <div class="panel metric primary"><label>Squad selected</label><strong id="selectedstat">6/6</strong><small>Up to six specialists</small></div>
+      <div class="panel metric"><label>Latest training</label><strong id="roundstat">—</strong><small>Rounds this browser session</small></div>
+      <div class="panel metric"><label>Proven playbooks</label><strong id="provenstat">—</strong><small>Across selected bots</small></div>
+      <div class="panel metric trend"><label>Reward trend</label><strong id="trendstat">—</strong><small>Recent 5 vs initial 5</small></div>
+    </section>
+    <section class="panel chartpanel">
+      <div class="cardheading"><h2>Team reward over rounds</h2><div class="legend"><span><i></i>Smoothed reward</span><span><i></i>Round reward</span></div></div>
+      <div class="chartwrap"><canvas id="chart" role="img" aria-label="Team reward by training round"></canvas><div class="emptychart" id="emptychart"><div><strong>No training results yet</strong>Select your squad and run a simulation to see its reward history.</div></div></div>
       <div class="controls">
         <button class="btn" id="train">▶ Train squad</button>
-        <label class="dim">rounds <b id="rv">30</b></label>
-        <input type="range" id="rounds" min="5" max="120" value="30">
-        <button class="btn ghost" id="buildrange">Rebuild range</button>
-        <span class="pill" id="trainstat"></span>
+        <label class="roundcontrol" for="rounds">Rounds <output id="rv">30</output><input type="range" id="rounds" min="5" max="120" value="30"></label>
+        <button class="btn secondary" id="buildrange">↻ Rebuild practice range</button>
+        <span class="progress" id="trainstat" role="status" aria-live="polite">Ready</span>
       </div>
-      <canvas id="chart"></canvas>
-      <div class="roundlog" id="roundlog"></div>
+    </section>
+    <div class="bottomgrid" id="activity">
+      <section class="panel datapanel"><div class="cardheading"><h2>Recent rounds</h2><span class="chip" id="recentcount">0 rounds</span></div><table class="table"><thead><tr><th>Round</th><th>Reward</th><th>Planted found</th></tr></thead><tbody id="roundlog"></tbody></table><div class="noresults" id="roundempty">Run a simulation to see recent round results.</div></section>
+      <section class="panel datapanel"><div class="cardheading"><h2>Selected bot performance</h2><span class="chip">Latest round</span></div><table class="table"><thead><tr><th>Bot</th><th>Reward</th><th>Found</th></tr></thead><tbody id="performance"></tbody></table><div class="noresults" id="perfempty">Individual bot results appear here after training.</div></section>
     </div>
+    <p class="footnote">Arena scores are from the deliberately planted local practice range, not proof that real systems have been tested or secured.</p>
   </section>
-
-  <section class="col">
-    <div class="card chat">
-      <h2>TALK TO THE ANCESTOR BRAIN</h2>
-      <div class="msgs" id="msgs"><div class="msg brain"><div class="who">BRAIN</div><div class="t">Ask me about attacking or defending your systems, or how to train the squad. (Needs the uncensored model downloaded on this machine.)</div></div></div>
-      <form class="ask" id="askform"><input id="q" placeholder="e.g. how should FOX BREACH prove a SQL injection?" autocomplete="off"><button class="btn" type="submit">Ask</button></form>
-    </div>
-  </section>
+  <aside class="panel brain" id="assistant">
+    <div class="brainhead"><div><h2>Ancestor Brain</h2><p>Training and strategy assistant</p></div><span class="chip" id="brainpill">Checking</span></div>
+    <div class="brainhero"><div class="avatar" id="brainavatar" aria-label="Pixel fox bot avatar"></div></div>
+    <div class="brainsetup" id="brainsetup"><strong>Checking AI connection</strong>Looking at the configured model provider…</div>
+    <div class="msgs" id="msgs" aria-live="polite"><div class="message"><small>Ancestor Brain</small>Ask about the training range, your bot roles, or how to interpret results. Your model connection will be checked before chat.</div></div>
+    <form class="ask" id="askform"><input id="q" aria-label="Ask Ancestor Brain" placeholder="Ask about your squad…" autocomplete="off" maxlength="2000"><button type="submit" class="btn" id="askbtn">Ask</button></form>
+    <p class="smallhint">The brain uses the provider selected in security/brains.json.</p>
+  </aside>
 </main>
 <script>
-(() => {
-  const $ = s => document.querySelector(s), api = (p, b) => fetch(p, b ? {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)} : undefined).then(r=>r.json());
-  const pick = new Set(['FOX SCOUT','FOX AUDITOR','FOX INSPECTOR','FOX BASTION','FOX BREACH','FOX WRAITH']);  // default squad of 6
-  let bots = [];
-
-  function drawBots() {
-    const el = $('#botlist'); el.innerHTML = '';
-    for (const b of bots) {
-      const d = document.createElement('div');
-      d.className = 'bot ' + b.side + (pick.has(b.name) ? ' pick' : '');
-      d.innerHTML = `<span class="dot"></span><div><div class="nm">${b.name}</div><div class="ro">${b.role}</div></div>
-        <div class="meta">${b.runs} runs · mean ${b.mean}<br>${b.proven ? '<span class="pz">'+b.proven+' proven</span>' : 'learning'}</div>`;
-      d.onclick = () => { if (pick.has(b.name)) pick.delete(b.name); else { if (pick.size>=6){ alert('Six at a time — unpick one first.'); return; } pick.add(b.name); } drawBots(); };
-      el.appendChild(d);
-    }
-    $('#pickn').textContent = `(${pick.size}/6 picked)`;
+(function(){
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const picked = new Set(['FOX SCOUT','FOX AUDITOR','FOX INSPECTOR','FOX BASTION','FOX BREACH','FOX WRAITH']);
+  let bots = [], history = [], busy = false;
+  const safe = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const num = (n) => Number.isFinite(Number(n)) ? Number(n) : 0;
+  const fmt = (n) => num(n).toFixed(1);
+  async function api(path, data){
+    const response = await fetch(path, data === undefined ? undefined : {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(data)});
+    const result = await response.json();
+    if(!response.ok) throw new Error(result.error || 'Request failed ('+response.status+')');
+    return result;
   }
-  async function refresh() { const s = await api('/api/state'); bots = s.bots; $('#tried').textContent = 'tactics tried: ' + s.tactics_tried; drawBots(); }
-
-  // chart
-  function chart(hist) {
-    const c = $('#chart'), ctx = c.getContext('2d'), W = c.width = c.clientWidth*2, H = c.height = 480; ctx.scale(1,1);
-    ctx.clearRect(0,0,W,H); if (!hist.length) return;
-    const rs = hist.map(h=>h.team_reward), lo = Math.min(0,...rs), hi = Math.max(1,...rs), pad = 40;
-    const x = i => pad + i*(W-2*pad)/Math.max(1,hist.length-1), y = v => H-pad - (v-lo)*(H-2*pad)/(hi-lo||1);
-    ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.beginPath(); ctx.moveTo(pad,y(0)); ctx.lineTo(W-pad,y(0)); ctx.stroke();
-    ctx.strokeStyle = 'rgba(62,168,255,.35)'; ctx.lineWidth = 2; ctx.beginPath();
-    rs.forEach((v,i)=>{ i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)); }); ctx.stroke();
-    const k = Math.max(3, Math.round(rs.length/8)), sm = rs.map((_,i)=>{ const a=rs.slice(Math.max(0,i-k+1),i+1); return a.reduce((x,y)=>x+y,0)/a.length; });
-    ctx.strokeStyle = '#38e0a0'; ctx.lineWidth = 5; ctx.beginPath();
-    sm.forEach((v,i)=>{ i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)); }); ctx.stroke();
-    ctx.fillStyle = '#38e0a0'; ctx.beginPath(); ctx.arc(x(rs.length-1), y(rs[rs.length-1]), 6, 0, 7); ctx.fill();
-    ctx.fillStyle = '#8894a6'; ctx.font = '22px ui-monospace'; ctx.fillText('reward '+rs[rs.length-1], W-pad-200, y(rs[rs.length-1])-14);
+  function foxAvatar(i){
+    const tint = [0,265,65,190,15,295,145,45,205,345,330,290][i%12];
+    return '<svg viewBox="0 0 32 32" aria-hidden="true" shape-rendering="crispEdges" style="filter:hue-rotate('+tint+'deg)"><path d="M4 16V4h7l5 7 5-7h7v12l3 6-7 7H8l-7-7z" fill="#ed862c" stroke="#37282b" stroke-width="2"/><path d="M7 8h4l3 6H7zm14 6 3-6h2v6z" fill="#ffe4b3"/><path d="M5 20h8l3 3 3-3h8l-4 7H9z" fill="#fff2d4"/><path d="M8 17h6v3H8zm10 0h6v3h-6z" fill="#242833"/><path d="M12 18h2v2h-2zm10 0h2v2h-2z" fill="#eec069"/><path d="M14 22h4v3h-4z" fill="#2a292b"/><path d="M3 27h26v4H3z" fill="#202e39"/><path d="M7 27h18v2H7z" fill="#e8b65b"/></svg>';
   }
-
-  $('#rounds').oninput = e => $('#rv').textContent = e.target.value;
-  $('#buildrange').onclick = async () => { await api('/api/range', {}); $('#trainstat').textContent = 'range rebuilt'; };
-  $('#train').onclick = async () => {
-    if (!pick.size) return alert('Pick at least one bot.');
-    const btn = $('#train'); btn.disabled = true; $('#trainstat').textContent = 'training…';
-    const res = await api('/api/train', { squad: [...pick], rounds: +$('#rounds').value });
-    const hist = res.history || []; chart(hist);
-    const log = $('#roundlog'); log.innerHTML = '';
-    for (const h of hist.slice().reverse()) {
-      const d = document.createElement('div'); d.className = 'r';
-      d.innerHTML = `round ${h.round}: <b>team reward ${h.team_reward}</b> · caught ${h.caught}/${h.of} planted` ;
-      log.appendChild(d);
+  function renderBots(){
+    const list=$('#botlist'); list.innerHTML='';
+    const blue=bots.filter(b=>b.side!=='red'), red=bots.filter(b=>b.side==='red');
+    [[blue,'Core specialists (9)','blue'],[red,'Red-team simulation (3)','red']].forEach(group=>{
+      if(!group[0].length)return;
+      const title=document.createElement('div');title.className='grouphead '+group[2];title.textContent=group[1];list.appendChild(title);
+      group[0].forEach(b=>{
+        const index=bots.indexOf(b), isPicked=picked.has(b.name);
+        const row=document.createElement('button');
+        row.type='button';row.className='botrow '+group[2]+(isPicked?' picked':'');
+        row.setAttribute('aria-pressed',String(isPicked));
+        row.setAttribute('aria-label',b.name+', '+b.role+(isPicked?', selected':', not selected'));
+        row.innerHTML='<span class="avatar">'+foxAvatar(index)+'</span><span class="bottext"><strong>'+safe(b.name)+'</strong><small>'+safe(b.role)+'</small></span><span class="pickbox" aria-hidden="true">'+(isPicked?'✓':'')+'</span>';
+        row.addEventListener('click',()=>{
+          if(busy)return;
+          if(picked.has(b.name))picked.delete(b.name);
+          else if(picked.size>=6){announce('Six bots maximum. Unselect one first.',true);return;}
+          else picked.add(b.name);
+          renderBots();updateMetrics();
+        });
+        list.appendChild(row);
+        const meta=document.createElement('div');meta.className='botmeta';
+        meta.innerHTML=num(b.runs)+' runs · mean '+fmt(b.mean)+(num(b.proven)>0?' · <b>'+num(b.proven)+' proven</b>':' · learning');
+        list.appendChild(meta);
+      });
+    });
+    $('#pickn').textContent=picked.size+'/6';
+  }
+  function updateMetrics(){
+    $('#selectedstat').textContent=picked.size+'/6';
+    $('#roundstat').textContent=history.length ? history.length : '—';
+    $('#provenstat').textContent=bots.length?bots.filter(b=>picked.has(b.name)).reduce((v,b)=>v+num(b.proven),0):'—';
+    const g=trend();
+    $('#trendstat').textContent=g===null?'—':(g>=0?'+':'')+g.toFixed(1);
+  }
+  function trend(){
+    if(history.length<10)return null;
+    const avg=(a)=>a.reduce((v,h)=>v+num(h.team_reward),0)/a.length;
+    return avg(history.slice(-5))-avg(history.slice(0,5));
+  }
+  function announce(text,isError){
+    const e=$('#trainstat');e.textContent=text;e.className='progress'+(isError?' error':' ok');
+  }
+  function paintChart(){
+    const canvas=$('#chart'),rect=canvas.getBoundingClientRect();
+    if(!rect.width)return;
+    const ratio=Math.min(devicePixelRatio||1,2), W=rect.width,H=rect.height;
+    canvas.width=Math.round(W*ratio);canvas.height=Math.round(H*ratio);
+    const ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);ctx.clearRect(0,0,W,H);
+    $('#emptychart').hidden=!!history.length;
+    if(!history.length)return;
+    const vals=history.map(h=>num(h.team_reward)),min=Math.min(...vals),max=Math.max(...vals),spread=Math.max(4,max-min),lo=min-spread*.2,hi=max+spread*.2;
+    const left=44,right=14,top=14,bottom=28,plotW=W-left-right,plotH=H-top-bottom;
+    const x=i=>left+i*plotW/Math.max(1,vals.length-1),y=v=>top+(hi-v)*plotH/(hi-lo);
+    ctx.lineWidth=1;ctx.font='11px ui-sans-serif,system-ui';ctx.fillStyle='#8397ab';
+    for(let i=0;i<5;i++){
+      const yy=top+i*plotH/4, val=hi-i*(hi-lo)/4;
+      ctx.strokeStyle='#263646';ctx.beginPath();ctx.moveTo(left,yy);ctx.lineTo(W-right,yy);ctx.stroke();
+      ctx.fillText(val.toFixed(1),4,yy+4);
     }
-    const avg = a => a.reduce((x,y)=>x+y.team_reward,0)/Math.max(1,a.length);
-    const g = hist.length>=10 ? avg(hist.slice(-5)) - avg(hist.slice(0,5)) : 0;
-    const proven = bots.filter(b=>pick.has(b.name)).reduce((n,b)=>n+b.proven,0);
-    $('#trainstat').textContent = `done · trend ${g>=0?'+':''}${g.toFixed(1)} · ${proven} tactics proven`;
-    btn.disabled = false; refresh();
-  };
-  $('#askform').onsubmit = async e => {
-    e.preventDefault(); const q = $('#q').value.trim(); if (!q) return; $('#q').value='';
-    const m = $('#msgs'); m.insertAdjacentHTML('beforeend', `<div class="msg you"><div class="who">YOU</div><div class="t">${q.replace(/</g,'&lt;')}</div></div>`);
-    const wait = document.createElement('div'); wait.className='msg brain'; wait.innerHTML='<div class="who">BRAIN</div><div class="t">…</div>'; m.appendChild(wait); m.scrollTop=m.scrollHeight;
-    try { const r = await api('/api/ask', { text: q }); wait.querySelector('.t').textContent = r.answer || r.error || '(no answer)'; }
-    catch { wait.querySelector('.t').textContent = 'Could not reach the brain.'; }
-    m.scrollTop = m.scrollHeight;
-  };
-  refresh();
+    const step=Math.max(1,Math.ceil(vals.length/6));
+    for(let i=0;i<vals.length;i+=step)ctx.fillText(String(num(history[i].round)),Math.max(left-6,x(i)-6),H-7);
+    function plot(values,color,width){
+      ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineJoin='round';
+      values.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)));
+      ctx.stroke();
+    }
+    plot(vals,'#53708a',1.4);
+    const windowSize=Math.max(3,Math.min(7,Math.round(vals.length/8)));
+    const smoothed=vals.map((v,i)=>{const a=vals.slice(Math.max(0,i-windowSize+1),i+1);return a.reduce((sum,n)=>sum+n,0)/a.length;});
+    plot(smoothed,'#35d4b2',2.6);
+    const end=smoothed.length-1;
+    ctx.beginPath();ctx.arc(x(end),y(smoothed[end]),4,0,Math.PI*2);ctx.fillStyle='#35d4b2';ctx.fill();
+  }
+  function renderResults(){
+    const recent=$('#roundlog');recent.innerHTML='';
+    $('#recentcount').textContent=history.length+' rounds';
+    $('#roundempty').hidden=!!history.length;
+    history.slice(-6).reverse().forEach(h=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+num(h.round)+'</td><td class="ok">'+fmt(h.team_reward)+'</td><td>'+num(h.caught)+' / '+num(h.of)+'</td>';
+      recent.appendChild(tr);
+    });
+    const perf=$('#performance');perf.innerHTML='';
+    const rows=(history.length?history[history.length-1].bots||[]:[]).slice().sort((a,b)=>num(b.reward)-num(a.reward));
+    $('#perfempty').hidden=!!rows.length;
+    rows.forEach(b=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+safe(b.bot)+'</td><td class="ok">'+fmt(b.reward)+'</td><td>'+num(b.caught)+' / '+num(b.of)+'</td>';
+      perf.appendChild(tr);
+    });
+  }
+  function setHistory(hist){
+    history=Array.isArray(hist)?hist:[];
+    updateMetrics();renderResults();paintChart();
+    try{sessionStorage.setItem('vulphex.arena.lastHistory',JSON.stringify(history));}catch(e){}
+  }
+  async function refresh(){
+    try{const s=await api('/api/state');bots=Array.isArray(s.bots)?s.bots:[];renderBots();updateMetrics();}
+    catch(e){announce('Could not load bots: '+e.message,true);}
+  }
+  function addMessage(role,text,isError){
+    const d=document.createElement('div');d.className='message '+(role==='You'?'user':'')+(isError?' error':'');
+    const label=document.createElement('small');label.textContent=role;
+    const content=document.createElement('span');content.textContent=text;
+    d.append(label,content);$('#msgs').appendChild(d);$('#msgs').scrollTop=$('#msgs').scrollHeight;
+    return content;
+  }
+  function setBrainBadge(text,style){
+    $('#brainpill').textContent=text;$('#brainpill').className='chip '+(style||'');
+    $('#topbrain').textContent='Brain: '+text;$('#topbrain').className='chip '+(style||'');
+  }
+  async function brainStatus(){
+    try{
+      const s=await api('/api/brain-status'),provider=(s.provider||'unknown').toUpperCase();
+      const box=$('#brainsetup');box.innerHTML='';
+      const head=document.createElement('strong');head.textContent=provider+' model · '+(s.configured?'not tested':'configuration required');
+      const body=document.createElement('div');body.textContent=s.hint||'';
+      box.append(head,body);setBrainBadge(s.configured?'Not tested':'Offline',s.configured?'':'bad');
+      if(!s.configured){$('#q').disabled=true;$('#askbtn').disabled=true;$('#q').placeholder='Configure your model provider first';}
+    }catch(e){
+      $('#brainsetup').textContent='Could not check model status. Make sure the Arena backend is running.';
+      setBrainBadge('Unavailable','bad');
+    }
+  }
+  $('#brainavatar').innerHTML=foxAvatar(0);
+  $('#rounds').addEventListener('input',e=>$('#rv').textContent=e.target.value);
+  $('#buildrange').addEventListener('click',async()=>{
+    const button=$('#buildrange');button.disabled=true;
+    try{await api('/api/range',{});announce('Practice range rebuilt');}
+    catch(e){announce('Range rebuild failed: '+e.message,true);}
+    finally{button.disabled=false;}
+  });
+  $('#train').addEventListener('click',async()=>{
+    if(!picked.size){announce('Select at least one bot.',true);return;}
+    busy=true;const button=$('#train');button.disabled=true;$('#buildrange').disabled=true;
+    button.textContent='Training…';announce('Training your selected squad');
+    try{
+      const result=await api('/api/train',{squad:Array.from(picked),rounds:Number($('#rounds').value)});
+      setHistory(result.history||[]);await refresh();
+      const g=trend();announce('Complete · '+history.length+' rounds'+(g===null?'':' · trend '+(g>=0?'+':'')+g.toFixed(1)));
+    }catch(e){announce('Training failed: '+e.message,true);}
+    finally{busy=false;button.disabled=false;$('#buildrange').disabled=false;button.textContent='▶ Train squad';}
+  });
+  $('#askform').addEventListener('submit',async(e)=>{
+    e.preventDefault();const q=$('#q'),message=q.value.trim();if(!message)return;
+    q.value='';addMessage('You',message);const answer=addMessage('Ancestor Brain','Thinking…');
+    $('#askbtn').disabled=true;q.disabled=true;
+    try{
+      const result=await api('/api/ask',{text:message});
+      answer.textContent=result.answer||'(No answer returned)';setBrainBadge('Connected','good');
+    }catch(error){
+      answer.textContent=error.message;setBrainBadge('Offline','bad');
+      const box=$('#brainsetup');box.textContent='Model request failed. Check your selected provider, credentials and server logs.';
+    }finally{q.disabled=false;$('#askbtn').disabled=false;q.focus();}
+  });
+  try{
+    const last=JSON.parse(sessionStorage.getItem('vulphex.arena.lastHistory')||'[]');
+    if(Array.isArray(last))history=last;
+  }catch(e){}
+  renderResults();updateMetrics();paintChart();refresh();brainStatus();
+  window.addEventListener('resize',paintChart);
 })();
 </script>
 </body>

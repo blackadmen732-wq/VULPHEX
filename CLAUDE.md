@@ -23,9 +23,14 @@ Owner: Mark. Paper/research + authorized-security only. Keep his decisions; expl
   pointed at the uncensored brain (agent.json base_url/model; token from env VULPHEX_BRAIN_TOKEN/ANTHROPIC_AUTH_TOKEN) with
   a FOX skill (fox-fix/fox-pentest/fox-recon) injected as the system prompt. Core.code(bot, mission, cwd) runs + audits it;
   CLI `artex.py agent "<BOT>" "<mission>"`. spawn is injectable for tests. Capability agentic_coding (core tool 'coder').
+- Lina coach (brain.py): the uncensored model proposes tactic changes as Lina rules; `Brain.lina_tweaks()` runs them
+  through engine/lina (LINA.run) and only a valid rule whose condition fires becomes a deeper/pickier challenger. So
+  Lina gates every coach suggestion. `Brain.coach(bot, ask)` wires the model; trainer.round_for_bot passes ideas to score.
 - `arena/`: the training room (owner wants to train them personally and watch). range.py = safe local practice range
   (planted vulns + answer key, localhost/files only). train.py = squad trains over rounds, brains evolve, team reward
   tracked (deterministic, offline). server.py + index.html = dashboard at 127.0.0.1:3006 (Jarvis-style guard): see the
   12 bots + brains, pick a squad of <=6, Train, watch the chart, and chat to the ancestor model (/api/ask -> router).
   open-arena.sh launches it. SAFETY: the arena never scans a real target; keep it to the range.
+- `arena/trainer.py` (was train.py; renamed to avoid clashing with engine/lina/train.py). `curriculum()` = solo->pairs->squad.
+  `arena/nightly.py` = server training loop, persists brain in vulphex.db, turns on the Lina coach if the model answers.
 - Tests: `python3 -m unittest tests/test_security.py tests/test_arena.py`.

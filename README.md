@@ -48,6 +48,17 @@ python3 security/artex.py findings                      # shared evidence databa
 python3 security/artex.py audit                         # audit log of every task
 ```
 
+## Train on a server — the pattern
+A **curriculum** (`arena/trainer.py` → `curriculum()`): each bot first learns its own playbook **solo**, then in handoff
+**pairs**, then the whole **squad** together — while the luck bar keeps rising. Point a server at it to keep improving:
+```bash
+python3 arena/nightly.py              # one training pass (curriculum over the range)
+python3 arena/nightly.py --loop 3600  # keep training: a pass every hour
+```
+Brain state persists in `security/vulphex.db`, so progress carries across runs and machines. If the uncensored model is
+reachable, the **Lina coach** turns on: it proposes tactic changes as **Lina Sigra** rules, your Lina engine validates
+each one, and only a valid rule whose condition holds becomes a challenger.
+
 ## Give a bot hands — the coding agent
 Three bots (FOX AUDITOR, FOX FORGE, FOX REAPER) can use **Claude Code's body** — run commands, read/write/edit files,
 build and fix code — with **your uncensored brain** behind it and a security **skill** loaded (`security/skills/`). This

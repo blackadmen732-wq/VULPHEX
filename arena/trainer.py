@@ -28,8 +28,9 @@ def false_alarms(genome, rnd):
     return sum(1 for _ in range(loose) if rnd.random() < 0.15)
 
 
-def round_for_bot(brain, bot_name, capabilities, plants, rnd):
-    """One training round for one bot: pick its current playbook, try the plants it owns, score it, evolve."""
+def round_for_bot(brain, bot_name, capabilities, plants, rnd, ask=None):
+    """One training round for one bot: pick its playbook, try the plants it owns, score it, and evolve — with the
+    coach's Lina-validated ideas (if a model is given) joining as challengers."""
     g = brain.active(bot_name)
     mine = [p for p in plants if p["capability"] in capabilities]
     caught = weight = 0
@@ -37,11 +38,12 @@ def round_for_bot(brain, bot_name, capabilities, plants, rnd):
         ok, w = attempt(g, p, rnd); caught += ok; weight += w
     fp = false_alarms(g, rnd)
     reward = weight - 1.0 * fp - 0.2 * len(capabilities)
-    brain.score(bot_name, g, reward)
-    return {"bot": bot_name, "caught": caught, "of": len(mine), "false_alarms": fp, "reward": round(reward, 1)}
+    ideas, _ = brain.coach(bot_name, ask) if ask else ([], [])
+    brain.score(bot_name, g, reward, coach_ideas=ideas)
+    return {"bot": bot_name, "caught": caught, "of": len(mine), "false_alarms": fp, "reward": round(reward, 1), "coach": len(ideas)}
 
 
-def train(core, squad, rounds=20, range_dir=None, seed=7):
+def train(core, squad, rounds=20, range_dir=None, seed=7, ask=None):
     """Train a squad (list of bot names) on the range for N rounds. Returns the per-round history for the dashboard."""
     import random
     rnd = random.Random(seed)
@@ -50,8 +52,22 @@ def train(core, squad, rounds=20, range_dir=None, seed=7):
     caps = {b["name"]: b["capabilities"] for b in core.team}
     history = []
     for r in range(1, rounds + 1):
-        rows = [round_for_bot(core.brain, name, caps.get(name, []), plants, rnd) for name in squad if name in caps]
+        rows = [round_for_bot(core.brain, name, caps.get(name, []), plants, rnd, ask=ask) for name in squad if name in caps]
         team_reward = round(sum(x["reward"] for x in rows), 1)
         team_caught = sum(x["caught"] for x in rows); team_of = sum(x["of"] for x in rows)
         history.append({"round": r, "team_reward": team_reward, "caught": team_caught, "of": team_of, "bots": rows})
     return history
+
+
+def curriculum(core, squad, per=15, seed=7, ask=None):
+    """The training pattern: each bot learns its own playbook SOLO, then in handoff PAIRS, then the whole SQUAD together,
+    then a longer squad push while the luck bar keeps rising. Returns the full history, tagged by stage."""
+    hist = []
+    def tag(stage, h): return [{"stage": stage, **x} for x in h]
+    for b in squad:                                             # stage 1: solo
+        hist += tag("solo:" + b, train(core, [b], per, seed=seed, ask=ask))
+    for i in range(0, len(squad), 2):                           # stage 2: pairs (SCOUT+ATLAS, AUDITOR+FORGE, ...)
+        pair = squad[i:i + 2]
+        if pair: hist += tag("pair:" + "+".join(pair), train(core, pair, per, seed=seed + 1, ask=ask))
+    hist += tag("squad", train(core, squad, per * 2, seed=seed + 2, ask=ask))   # stage 3: all together, longer
+    return hist

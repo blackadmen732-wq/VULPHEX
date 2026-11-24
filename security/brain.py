@@ -8,6 +8,11 @@
 import json, os, random, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(HERE), "engine"))
+sys.path.insert(0, os.path.join(os.path.dirname(HERE), "engine", "lina"))
+try:
+    import lang as LINA           # Mark's own language: it gates whether a coach suggestion may change a bot
+except Exception:
+    LINA = None
 try:
     import bootcamp as bc
     REQUIRED_Z = bc.required_z                                 # reuse Edge Bot's rising luck bar
@@ -113,6 +118,51 @@ class Brain:
         self.db.commit()
         nxt = keep[0]; proven = sum(p["proven"] for p in self._pop(bot))
         return nxt, f"brain: reward {rwd:+.1f}, next tactic depth={nxt['depth']}/keep={nxt['keep']}, {proven} proven, luck bar {bar:.2f}"
+
+    def lina_state(self, bot):
+        """What a Lina rule can test for a bot: regra (is its best tactic good?), fila (rounds stuck), gania (mean reward)."""
+        rows = self._pop(bot); runs = sum(r["runs"] for r in rows); total = sum(r["total"] for r in rows)
+        best = max((r["total"] / r["runs"] for r in rows if r["runs"]), default=0.0)
+        return {"regra": "lena" if best > 0 else "mala", "fila": max(0, 5 - sum(r["proven"] for r in rows)),
+                "gania": round(total / runs, 2) if runs else 0.0, "novia": 1.0, "trema": 1.0, "merka": "multe",
+                "risk": "basa", "sinal": "forte", "perdia": "basa"}
+
+    def lina_tweaks(self, lines, state, base):
+        """Each line the coach model wrote is checked by the Lina ENGINE. Only a valid rule whose condition holds tonight
+        becomes a challenger: a 'go deeper / be thorough' suggestion deepens the playbook; an 'ignore noise' suggestion
+        raises the keep-bar. Invalid or not-firing lines are dropped. Returns (genomes, notes)."""
+        out, notes = [], []
+        for line in lines:
+            line = str(line).strip()
+            if not line or LINA is None: continue
+            try: r = LINA.run(line, state)
+            except Exception as e: notes.append(f"Lina rejected `{line[:40]}`: {str(e)[:50]}"); continue
+            d = r.get("decision")
+            if not d: notes.append(f"`{line[:40]}`: condition not true now"); continue
+            g = dict(base)
+            if d.get("do") == "suggest" and d.get("set") in ("neurons", "hold"):
+                i = GENES["depth"].index(g["depth"]); g["depth"] = GENES["depth"][min(i + 1, len(GENES["depth"]) - 1)]; g["persist"] = True
+            elif d.get("do") == "suggest" and d.get("set") == "ignore_input":
+                i = GENES["keep"].index(g["keep"]); g["keep"] = GENES["keep"][min(i + 1, len(GENES["keep"]) - 1)]
+            else:
+                notes.append(f"`{line[:40]}`: Lina says {d.get('do')} (no tactic change)"); continue
+            if g != base and g not in out: out.append(g); notes.append(f"`{line[:40]}` -> deeper/pickier challenger")
+        return out, notes
+
+    def coach(self, bot, ask):
+        """Ask the (uncensored) model for tactic ideas in Lina, gate them through the engine, return challengers.
+        `ask` is a function prompt->text, or None. Never raises."""
+        if ask is None or LINA is None: return [], []
+        base = self.active(bot); st = self.lina_state(bot)
+        prompt = ("Suggest ONE change to a security bot's search tactic, as a single Lina Sigra rule "
+                  "(form: se <condition>: na va <action>). Reply with the rule only.")
+        lines = []
+        for _ in range(3):
+            try: t = ask(prompt) or ""
+            except Exception: break
+            ln = next((l.strip().strip("`") for l in t.splitlines() if l.strip()), "")
+            if ln: lines.append(ln)
+        return self.lina_tweaks(lines, st, base)
 
     def filter_findings(self, genome, findings):
         """Apply the active genome's keep-bar: a pickier tactic drops low-severity noise."""

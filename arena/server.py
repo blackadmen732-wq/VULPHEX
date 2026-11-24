@@ -9,7 +9,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(ROOT, "security"))
 import core as C
-import train as TR
+import trainer as TR
 import range as RG
 
 PORT = int(os.environ.get("VULPHEX_ARENA_PORT", "3006"))

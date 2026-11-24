@@ -16,11 +16,26 @@ PORT = 3006
 def sh(cmd, **kw): return subprocess.run(cmd, shell=True, check=True, **kw)
 
 
+def brain_env():
+    """Prefer your NVIDIA key (added as a Kaggle Secret named NVIDIA_API_KEY) -> fast cloud brain. If it's not there,
+    fall back to the uncensored model on the GPU. Your key never leaves Kaggle and is never stored in the repo."""
+    key = os.environ.get("NVIDIA_API_KEY")
+    if not key:
+        try:
+            from kaggle_secrets import UserSecretsClient
+            key = UserSecretsClient().get_secret("NVIDIA_API_KEY")
+        except Exception: key = None
+    if key:
+        print("NVIDIA key found -> fast cloud brain.", flush=True); return {"NVIDIA_API_KEY": key}
+    print("No NVIDIA secret -> using the uncensored model on this GPU (slower to start, no key needed).", flush=True)
+    return {"VULPHEX_BRAIN_DEFAULT": "uncensored"}
+
+
 def main():
     if not os.path.isdir(DIR): sh(f"git clone --depth 1 {REPO} {DIR}")
     else: sh(f"cd {DIR} && git pull -q || true")
     sh("pip install -q transformers accelerate >/dev/null 2>&1 || true")
-    env = {**os.environ, "COACH_MODEL": MODEL, "VULPHEX_ARENA_PORT": str(PORT)}
+    env = {**os.environ, "COACH_MODEL": MODEL, "VULPHEX_ARENA_PORT": str(PORT), **brain_env()}
 
     # 1) STUDY: the bots read every repo and learn its technique into the brain
     print("Studying the repos (learning each tool's technique)...", flush=True)

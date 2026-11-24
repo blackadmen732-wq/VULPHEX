@@ -66,7 +66,7 @@ class ModelRouter:
     def pick(self, job):
         for name, m in self.cfg.get("models", {}).items():
             if job in (m.get("for") or []): return name, m
-        d = self.cfg.get("default", "fast")
+        d = os.environ.get("VULPHEX_BRAIN_DEFAULT") or self.cfg.get("default", "fast")
         return d, self.cfg.get("models", {}).get(d, {"provider": "local", "model": os.environ.get("COACH_MODEL", "")})
 
     def ask(self, job, prompt, max_new_tokens=160):

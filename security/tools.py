@@ -184,6 +184,22 @@ def zap(target):
     return findings
 
 
+def nmap(target):
+    """Real recon/enumeration with nmap: open ports + service versions. Falls back to the built-in port check."""
+    host = re.sub(r"^\w+://", "", str(target)).split("/")[0].split(":")[0]
+    if not have("nmap"): return recon(host)
+    code, out, err = _run(["nmap", "-sV", "-Pn", "-T4", "--top-ports", "200", host], timeout=1800)
+    findings = []
+    for line in out.splitlines():
+        m = re.match(r"(\d+)/tcp\s+open\s+(\S+)\s*(.*)", line.strip())
+        if m:
+            port, svc, ver = m.group(1), m.group(2), m.group(3).strip()
+            risky = svc in ("telnet", "ms-wbt-server", "rdp", "redis", "mongodb", "mysql", "postgresql", "elasticsearch", "ftp", "vnc")
+            findings.append({"severity": "high" if risky else "info", "title": f"Open {port}/tcp {svc}" + (f" {ver}" if ver else ""),
+                             "where": f"{host}:{port}", "detail": ("exposed service — often should not be public" if risky else "open service")})
+    return findings or recon(host)
+
+
 def recon(target):
     """Light, non-intrusive: which of a short list of common ports answer. No exploitation."""
     import socket
@@ -268,14 +284,11 @@ def _run_pentest(tool, target, on_line=None):
     return [{"severity": sev, "title": f"{tool} run against {target} — review its full output", "where": target, "detail": tail}]
 
 
-def autohunter(target):  return _run_pentest("autohunter", target)
-def artex(target):       return _run_pentest("artex", target)
-def pentagi(target):     return _run_pentest("pentagi", target)
-def pentestgpt(target):  return _run_pentest("pentestgpt", target)
-def strix(target):       return _run_pentest("strix", target)
-def nebula(target):      return _run_pentest("nebula", target)
+def pentestgpt(target):  return _run_pentest("pentestgpt", target)   # optional AI driver (needs install)
+def artex(target):       return _run_pentest("artex", target)        # optional autonomous pentester (docker)
+def pentagi(target):     return _run_pentest("pentagi", target)      # optional autonomous pentester (docker)
 
 
 RUNNERS = {"semgrep": semgrep, "gitleaks": gitleaks, "trivy": trivy, "nuclei": nuclei, "zap": zap, "recon": recon,
-           "garak": garak, "pyrit": pyrit, "promptfoo": promptfoo, "sqlmap": sqlmap, "metasploit": metasploit,
-           "autohunter": autohunter, "artex": artex, "pentagi": pentagi, "pentestgpt": pentestgpt, "strix": strix, "nebula": nebula}
+           "nmap": nmap, "garak": garak, "pyrit": pyrit, "promptfoo": promptfoo, "sqlmap": sqlmap, "metasploit": metasploit,
+           "pentestgpt": pentestgpt, "artex": artex, "pentagi": pentagi}

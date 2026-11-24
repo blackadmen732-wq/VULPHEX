@@ -52,6 +52,20 @@ class PolicyTest(unittest.TestCase):
         self.assertTrue(any("OUTSIDE your declared scope" in l for l in log))
 
 
+class PentestToolkitTest(unittest.TestCase):
+    def test_the_four_penetration_tools_are_wired(self):
+        import registry as R2, tools as T2
+        want = {"nmap", "nuclei", "sqlmap", "metasploit"}
+        wired = {a["tool"] for caps in ("asset_discovery", "web_app_scan", "exploit_validation", "adversary_sim") for a in R2.adapters(caps)}
+        self.assertTrue(want <= wired, f"missing: {want - wired}")
+        for t in want: self.assertIn(t, T2.RUNNERS)
+
+    def test_clutter_tools_are_gone(self):
+        import tools as T2
+        for gone in ("autohunter", "strix", "nebula"):
+            self.assertNotIn(gone, T2.RUNNERS)
+
+
 class EvidenceAndProofTest(unittest.TestCase):
     def test_verify_confirms_a_real_line_and_flags_a_gone_one(self):
         d = tempfile.mkdtemp(); real = os.path.join(d, "c.py"); open(real, "w").write("x=1\nAWS='AKIAIOSFODNN7EXAMPLE'\n")

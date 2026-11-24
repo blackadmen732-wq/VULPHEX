@@ -1,0 +1,6 @@
+# A Black Fox desk's stand-down rules, written in Lina Sigra. First rule that matches decides.
+se risk es alta 0.8: na no va menda 10 dia kava na sinta risk
+se regra es mala e preza es basa -0.05:
+    na va mira kava regra es mala
+se risk es basa 0.2 e regra es lena: na va menda
+se risk es alta 0.5: na va menda pika

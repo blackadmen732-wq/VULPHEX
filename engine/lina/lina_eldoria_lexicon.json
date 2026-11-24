@@ -1,0 +1,3105 @@
+{
+ "language": "Lina Eldoria (Eldorian, \"Common\")",
+ "machine_layer": "Lina Sigra",
+ "version": "Year 37 EF / s882 (Tekna + trading words added)",
+ "note": "353-word working lexicon from the record (Appendix V-14) with the record fix map = mapa; codes are 4 digits: first digit = class",
+ "classes": {
+  "0": "control: grammar markers 0001-0015, bot job tags 0101-0105, Tekna (machine, AI, robot words) 0201-0299, frame 0090-0099",
+  "1": "grammar & everyday",
+  "2": "greetings & social life",
+  "3": "verbs",
+  "4": "people, public life & law",
+  "5": "nature, geography & colour",
+  "6": "food, farming & trade",
+  "7": "quality, description & ideas",
+  "8": "numbers, quantity & time",
+  "9": "name registry"
+ },
+ "entries": [
+  {
+   "code": "0001",
+   "eldorian": "ta",
+   "english": "past tense marker (before verb)",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0002",
+   "eldorian": "va",
+   "english": "future tense marker",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0003",
+   "eldorian": "ri",
+   "english": "ongoing marker (-ing)",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0004",
+   "eldorian": "ja",
+   "english": "completed marker (have done)",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0005",
+   "eldorian": "no",
+   "english": "not; no (before verb)",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0006",
+   "eldorian": "ke",
+   "english": "yes/no question opener",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0007",
+   "eldorian": "la",
+   "english": "the",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0008",
+   "eldorian": "un",
+   "english": "a/an; one",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0009",
+   "eldorian": "ma",
+   "english": "plural marker (before noun)",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0010",
+   "eldorian": "de",
+   "english": "of; possession",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0011",
+   "eldorian": "a",
+   "english": "to (recipient)",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0012",
+   "eldorian": "por",
+   "english": "for",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0013",
+   "eldorian": "ki",
+   "english": "who/that (relative)",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0014",
+   "eldorian": "kia",
+   "english": "who? (question)",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0015",
+   "eldorian": "es",
+   "english": "is/are (be)",
+   "class": 0,
+   "category": "Control (grammar markers)"
+  },
+  {
+   "code": "0090",
+   "eldorian": "#",
+   "english": "NUMBER LITERAL: the next token is a number written in digits",
+   "class": 0,
+   "category": "Control (frame)"
+  },
+  {
+   "code": "0091",
+   "eldorian": "@",
+   "english": "NAME: the next token is a code from the 9000 name registry",
+   "class": 0,
+   "category": "Control (frame)"
+  },
+  {
+   "code": "0092",
+   "eldorian": "*",
+   "english": "NEW WORD: the next token is spelled out, not yet in the lexicon",
+   "class": 0,
+   "category": "Control (frame)"
+  },
+  {
+   "code": "0097",
+   "eldorian": ",",
+   "english": "pause / comma",
+   "class": 0,
+   "category": "Control (frame)"
+  },
+  {
+   "code": "0098",
+   "eldorian": ".",
+   "english": "end of sentence",
+   "class": 0,
+   "category": "Control (frame)"
+  },
+  {
+   "code": "0099",
+   "eldorian": "END",
+   "english": "end of message",
+   "class": 0,
+   "category": "Control (frame)"
+  },
+  {
+   "code": "1001",
+   "eldorian": "mi",
+   "english": "I; me",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1002",
+   "eldorian": "ti",
+   "english": "you (singular)",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1003",
+   "eldorian": "lo",
+   "english": "he, she, or it (gender-neutral singular)",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1004",
+   "eldorian": "na",
+   "english": "we",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1005",
+   "eldorian": "vi",
+   "english": "you (plural or respectful singular)",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1006",
+   "eldorian": "len",
+   "english": "they",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1007",
+   "eldorian": "da",
+   "english": "from",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1008",
+   "eldorian": "kon",
+   "english": "with",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1009",
+   "eldorian": "en",
+   "english": "in; inside",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1010",
+   "eldorian": "sur",
+   "english": "on; atop",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1011",
+   "eldorian": "sub",
+   "english": "under",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1012",
+   "eldorian": "tra",
+   "english": "through",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1013",
+   "eldorian": "entre",
+   "english": "between",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1014",
+   "eldorian": "sen",
+   "english": "without",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1015",
+   "eldorian": "e",
+   "english": "and",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1016",
+   "eldorian": "pero",
+   "english": "but",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1017",
+   "eldorian": "se",
+   "english": "if",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1018",
+   "eldorian": "kava",
+   "english": "because",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1019",
+   "eldorian": "kua",
+   "english": "what",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1020",
+   "eldorian": "unde",
+   "english": "where",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1021",
+   "eldorian": "kana",
+   "english": "when",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1022",
+   "eldorian": "pore",
+   "english": "why",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1023",
+   "eldorian": "komo",
+   "english": "how",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1024",
+   "eldorian": "kuan",
+   "english": "how many",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1025",
+   "eldorian": "o",
+   "english": "or (alternative)",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1026",
+   "eldorian": "si",
+   "english": "yes",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1027",
+   "eldorian": "multe",
+   "english": "many; much",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1028",
+   "eldorian": "pika",
+   "english": "small; little",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1029",
+   "eldorian": "lena",
+   "english": "good",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1030",
+   "eldorian": "mala",
+   "english": "bad",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1031",
+   "eldorian": "muli",
+   "english": "very",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1032",
+   "eldorian": "ala",
+   "english": "all",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1033",
+   "eldorian": "soma",
+   "english": "some",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "1034",
+   "eldorian": "solo",
+   "english": "only",
+   "class": 1,
+   "category": "Grammar and everyday words"
+  },
+  {
+   "code": "2001",
+   "eldorian": "sela",
+   "english": "hello",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2002",
+   "eldorian": "salo",
+   "english": "goodbye",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2003",
+   "eldorian": "vara",
+   "english": "welcome",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2004",
+   "eldorian": "davi",
+   "english": "thank you",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2005",
+   "eldorian": "plisa",
+   "english": "please",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2006",
+   "eldorian": "parda",
+   "english": "excuse me; sorry",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2007",
+   "eldorian": "sira",
+   "english": "peace",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2008",
+   "eldorian": "pala",
+   "english": "friend",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2009",
+   "eldorian": "nara",
+   "english": "person",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2010",
+   "eldorian": "rasa",
+   "english": "people-group; ancestral community or culture",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2011",
+   "eldorian": "ima",
+   "english": "child",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2012",
+   "eldorian": "fami",
+   "english": "family",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2013",
+   "eldorian": "marae",
+   "english": "parent",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2014",
+   "eldorian": "mami",
+   "english": "mother",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2015",
+   "eldorian": "papi",
+   "english": "father",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2016",
+   "eldorian": "frana",
+   "english": "sibling",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2017",
+   "eldorian": "sesta",
+   "english": "sister",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2018",
+   "eldorian": "frato",
+   "english": "brother",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2019",
+   "eldorian": "mate",
+   "english": "partner; spouse",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2020",
+   "eldorian": "veta",
+   "english": "work; labor",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2021",
+   "eldorian": "vetor",
+   "english": "worker",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2022",
+   "eldorian": "maestra",
+   "english": "teacher",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2023",
+   "eldorian": "kela",
+   "english": "learn; study",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2024",
+   "eldorian": "kelor",
+   "english": "student",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2025",
+   "eldorian": "sava",
+   "english": "speak; say",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2026",
+   "eldorian": "savor",
+   "english": "speaker",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2027",
+   "eldorian": "lina",
+   "english": "language; tongue",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2028",
+   "eldorian": "nema",
+   "english": "name",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2029",
+   "eldorian": "nami",
+   "english": "to name",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2030",
+   "eldorian": "ama",
+   "english": "love",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2031",
+   "eldorian": "kara",
+   "english": "care about",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2032",
+   "eldorian": "kora",
+   "english": "heart",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2033",
+   "eldorian": "respa",
+   "english": "respect",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2034",
+   "eldorian": "feda",
+   "english": "trust",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2035",
+   "eldorian": "lova",
+   "english": "hope",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2036",
+   "eldorian": "rema",
+   "english": "remember",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2037",
+   "eldorian": "denova",
+   "english": "again",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2038",
+   "eldorian": "sena",
+   "english": "know",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2039",
+   "eldorian": "mena",
+   "english": "think",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2040",
+   "eldorian": "sinta",
+   "english": "feel",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2041",
+   "eldorian": "somi",
+   "english": "dream",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2042",
+   "eldorian": "rana",
+   "english": "laugh",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2043",
+   "eldorian": "kanta",
+   "english": "sing",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "2044",
+   "eldorian": "sona",
+   "english": "song; melody",
+   "class": 2,
+   "category": "Greetings and social life"
+  },
+  {
+   "code": "3001",
+   "eldorian": "fora",
+   "english": "build; construct",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3002",
+   "eldorian": "fena",
+   "english": "find; discover",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3003",
+   "eldorian": "mira",
+   "english": "see; look",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3004",
+   "eldorian": "lana",
+   "english": "listen; hear",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3005",
+   "eldorian": "dela",
+   "english": "give",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3006",
+   "eldorian": "toma",
+   "english": "take",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3007",
+   "eldorian": "tena",
+   "english": "have; possess",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3008",
+   "eldorian": "vani",
+   "english": "go",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3009",
+   "eldorian": "veni",
+   "english": "come",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3010",
+   "eldorian": "tava",
+   "english": "travel",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3011",
+   "eldorian": "navi",
+   "english": "sail; navigate",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3012",
+   "eldorian": "mova",
+   "english": "move",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3013",
+   "eldorian": "dora",
+   "english": "open",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3014",
+   "eldorian": "sera",
+   "english": "close; shut",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3015",
+   "eldorian": "pova",
+   "english": "be able to; can",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3016",
+   "eldorian": "tira",
+   "english": "need",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3017",
+   "eldorian": "lora",
+   "english": "want",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3018",
+   "eldorian": "pesa",
+   "english": "ask",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3019",
+   "eldorian": "vasa",
+   "english": "answer",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3020",
+   "eldorian": "risa",
+   "english": "read",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3021",
+   "eldorian": "siva",
+   "english": "write",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3022",
+   "eldorian": "norae",
+   "english": "count",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3023",
+   "eldorian": "paga",
+   "english": "pay",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3024",
+   "eldorian": "vori",
+   "english": "buy",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3025",
+   "eldorian": "sori",
+   "english": "sell",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3026",
+   "eldorian": "menda",
+   "english": "trade",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3027",
+   "eldorian": "varaen",
+   "english": "receive; welcome a guest",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3028",
+   "eldorian": "kura",
+   "english": "heal",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3029",
+   "eldorian": "viva",
+   "english": "grow",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3030",
+   "eldorian": "seda",
+   "english": "plant (a seed)",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3031",
+   "eldorian": "masa",
+   "english": "harvest",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3032",
+   "eldorian": "coka",
+   "english": "cook",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3033",
+   "eldorian": "fesa",
+   "english": "eat",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3034",
+   "eldorian": "biba",
+   "english": "drink",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3035",
+   "eldorian": "savaen",
+   "english": "explain",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3036",
+   "eldorian": "loka",
+   "english": "protect; guard",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3037",
+   "eldorian": "linae",
+   "english": "connect; link",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3038",
+   "eldorian": "kopa",
+   "english": "copy",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3039",
+   "eldorian": "vera",
+   "english": "check; verify",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3040",
+   "eldorian": "fika",
+   "english": "fix; repair",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3041",
+   "eldorian": "suma",
+   "english": "add",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3042",
+   "eldorian": "rimae",
+   "english": "remove",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3043",
+   "eldorian": "valida",
+   "english": "approve",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "3044",
+   "eldorian": "marca",
+   "english": "mark; label",
+   "class": 3,
+   "category": "Common verbs"
+  },
+  {
+   "code": "4001",
+   "eldorian": "tera",
+   "english": "land; country",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4002",
+   "eldorian": "vila",
+   "english": "city",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4003",
+   "eldorian": "vilo",
+   "english": "village",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4004",
+   "eldorian": "doma",
+   "english": "home; house",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4005",
+   "eldorian": "fara",
+   "english": "farm",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4006",
+   "eldorian": "merka",
+   "english": "market",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4007",
+   "eldorian": "porta",
+   "english": "harbor; port",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4008",
+   "eldorian": "rava",
+   "english": "road",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4009",
+   "eldorian": "ponta",
+   "english": "bridge",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4010",
+   "eldorian": "ferra",
+   "english": "forge; foundry",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4011",
+   "eldorian": "skola",
+   "english": "school",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4012",
+   "eldorian": "akada",
+   "english": "academy",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4013",
+   "eldorian": "livra",
+   "english": "book",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4014",
+   "eldorian": "mapa",
+   "english": "map",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4015",
+   "eldorian": "mesa",
+   "english": "table",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4016",
+   "eldorian": "seja",
+   "english": "chair",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4017",
+   "eldorian": "kasa",
+   "english": "room",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4018",
+   "eldorian": "dori",
+   "english": "door",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4019",
+   "eldorian": "fenra",
+   "english": "window",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4020",
+   "eldorian": "krono",
+   "english": "crown",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4021",
+   "eldorian": "rega",
+   "english": "ruler; sovereign",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4022",
+   "eldorian": "reina",
+   "english": "queen",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4023",
+   "eldorian": "reino",
+   "english": "king",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4024",
+   "eldorian": "konsel",
+   "english": "council",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4025",
+   "eldorian": "leva",
+   "english": "law",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4026",
+   "eldorian": "juda",
+   "english": "judge",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4027",
+   "eldorian": "korte",
+   "english": "court",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4028",
+   "eldorian": "libra",
+   "english": "freedom",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4029",
+   "eldorian": "justa",
+   "english": "justice; fairness",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4030",
+   "eldorian": "riga",
+   "english": "right; entitlement",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4031",
+   "eldorian": "vola",
+   "english": "choice; will",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4032",
+   "eldorian": "pakt",
+   "english": "treaty; binding agreement",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4033",
+   "eldorian": "selae",
+   "english": "seal; official certification",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4034",
+   "eldorian": "taxa",
+   "english": "tax",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4035",
+   "eldorian": "kred",
+   "english": "credit",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4036",
+   "eldorian": "banka",
+   "english": "bank",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4037",
+   "eldorian": "preza",
+   "english": "price",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4038",
+   "eldorian": "moni",
+   "english": "money; currency",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4039",
+   "eldorian": "mark",
+   "english": "Mark (Eldorian currency proper name)",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4040",
+   "eldorian": "ora",
+   "english": "gold",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4041",
+   "eldorian": "silva",
+   "english": "silver",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4042",
+   "eldorian": "kopaen",
+   "english": "copper",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4043",
+   "eldorian": "nava",
+   "english": "ship",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4044",
+   "eldorian": "trena",
+   "english": "train",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4045",
+   "eldorian": "starline",
+   "english": "Starline (proper name; borrowed spelling)",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4046",
+   "eldorian": "glida",
+   "english": "to glide",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4047",
+   "eldorian": "sigra",
+   "english": "signal",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "4048",
+   "eldorian": "neta",
+   "english": "network",
+   "class": 4,
+   "category": "People, public life and law"
+  },
+  {
+   "code": "5001",
+   "eldorian": "sola",
+   "english": "sun",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5002",
+   "eldorian": "luna",
+   "english": "moon",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5003",
+   "eldorian": "stela",
+   "english": "star",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5004",
+   "eldorian": "sora",
+   "english": "sky",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5005",
+   "eldorian": "teraen",
+   "english": "soil; earth",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5006",
+   "eldorian": "mara",
+   "english": "water",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5007",
+   "eldorian": "rima",
+   "english": "river",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5008",
+   "eldorian": "lago",
+   "english": "lake",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5009",
+   "eldorian": "mora",
+   "english": "sea",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5010",
+   "eldorian": "oceana",
+   "english": "ocean",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5011",
+   "eldorian": "isla",
+   "english": "island",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5012",
+   "eldorian": "monta",
+   "english": "mountain",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5013",
+   "eldorian": "vala",
+   "english": "valley",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5014",
+   "eldorian": "foresta",
+   "english": "forest",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5015",
+   "eldorian": "talo",
+   "english": "tree",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5016",
+   "eldorian": "fola",
+   "english": "leaf",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5017",
+   "eldorian": "flora",
+   "english": "flower",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5018",
+   "eldorian": "sedi",
+   "english": "seed",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5019",
+   "eldorian": "fruta",
+   "english": "fruit",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5020",
+   "eldorian": "rata",
+   "english": "root",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5021",
+   "eldorian": "vena",
+   "english": "wind",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5022",
+   "eldorian": "pluva",
+   "english": "rain",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5023",
+   "eldorian": "neva",
+   "english": "snow",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5024",
+   "eldorian": "glasa",
+   "english": "ice",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5025",
+   "eldorian": "nuba",
+   "english": "cloud",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5026",
+   "eldorian": "fera",
+   "english": "fire",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5027",
+   "eldorian": "luma",
+   "english": "light",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5028",
+   "eldorian": "nora",
+   "english": "night",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5029",
+   "eldorian": "dia",
+   "english": "day",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5030",
+   "eldorian": "dama",
+   "english": "tomorrow",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5031",
+   "eldorian": "teraia",
+   "english": "yesterday",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5032",
+   "eldorian": "orae",
+   "english": "dawn",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5033",
+   "eldorian": "seraia",
+   "english": "evening",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5034",
+   "eldorian": "alba",
+   "english": "white",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5035",
+   "eldorian": "negra",
+   "english": "black",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5036",
+   "eldorian": "ruba",
+   "english": "red",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5037",
+   "eldorian": "azula",
+   "english": "blue",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5038",
+   "eldorian": "verda",
+   "english": "green",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5039",
+   "eldorian": "dorae",
+   "english": "golden",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5040",
+   "eldorian": "gris",
+   "english": "gray",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5041",
+   "eldorian": "bruna",
+   "english": "brown",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5042",
+   "eldorian": "kala",
+   "english": "calm",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5043",
+   "eldorian": "fresa",
+   "english": "cool; fresh",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "5044",
+   "eldorian": "kali",
+   "english": "warm; hot",
+   "class": 5,
+   "category": "Nature, geography and color"
+  },
+  {
+   "code": "6001",
+   "eldorian": "breda",
+   "english": "bread",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6002",
+   "eldorian": "risi",
+   "english": "rice",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6003",
+   "eldorian": "triga",
+   "english": "wheat",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6004",
+   "eldorian": "maiza",
+   "english": "maize",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6005",
+   "eldorian": "taro",
+   "english": "taro",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6006",
+   "eldorian": "kasae",
+   "english": "cassava",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6007",
+   "eldorian": "bana",
+   "english": "banana",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6008",
+   "eldorian": "mango",
+   "english": "mango",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6009",
+   "eldorian": "anasa",
+   "english": "pineapple",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6010",
+   "eldorian": "limon",
+   "english": "lemon",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6011",
+   "eldorian": "lima",
+   "english": "lime",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6012",
+   "eldorian": "kokona",
+   "english": "coconut",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6013",
+   "eldorian": "kakao",
+   "english": "cacao",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6014",
+   "eldorian": "vanila",
+   "english": "vanilla",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6015",
+   "eldorian": "kanae",
+   "english": "sugar cane",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6016",
+   "eldorian": "sukra",
+   "english": "sugar",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6017",
+   "eldorian": "jenja",
+   "english": "ginger",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6018",
+   "eldorian": "cinama",
+   "english": "cinnamon",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6019",
+   "eldorian": "pepa",
+   "english": "pepper",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6020",
+   "eldorian": "karada",
+   "english": "cardamom",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6021",
+   "eldorian": "kurma",
+   "english": "turmeric",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6022",
+   "eldorian": "klova",
+   "english": "clove",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6023",
+   "eldorian": "nuta",
+   "english": "nut",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6024",
+   "eldorian": "musa",
+   "english": "mushroom",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6025",
+   "eldorian": "herba",
+   "english": "herb",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6026",
+   "eldorian": "spisa",
+   "english": "spice",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6027",
+   "eldorian": "tea",
+   "english": "tea",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6028",
+   "eldorian": "mela",
+   "english": "honey",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6029",
+   "eldorian": "sal",
+   "english": "salt",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6030",
+   "eldorian": "pesi",
+   "english": "fish",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6031",
+   "eldorian": "krapa",
+   "english": "crab",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6032",
+   "eldorian": "ostra",
+   "english": "oyster",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6033",
+   "eldorian": "carna",
+   "english": "meat",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6034",
+   "eldorian": "frika",
+   "english": "fried; roasted",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6035",
+   "eldorian": "supa",
+   "english": "soup",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6036",
+   "eldorian": "krem",
+   "english": "cream",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6037",
+   "eldorian": "vada",
+   "english": "vegetable",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6038",
+   "eldorian": "nuri",
+   "english": "nutrition",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6039",
+   "eldorian": "venena",
+   "english": "poison; toxin",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6040",
+   "eldorian": "meda",
+   "english": "medicine",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6041",
+   "eldorian": "menaen",
+   "english": "medical treatment",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6042",
+   "eldorian": "pura",
+   "english": "clean; pure",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6043",
+   "eldorian": "safa",
+   "english": "safe",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6044",
+   "eldorian": "risk",
+   "english": "risk; hazard",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6045",
+   "eldorian": "frida",
+   "english": "cold storage",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "6046",
+   "eldorian": "kuraen",
+   "english": "cure; preserve food",
+   "class": 6,
+   "category": "Food, farming and trade"
+  },
+  {
+   "code": "7001",
+   "eldorian": "bela",
+   "english": "beautiful",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7002",
+   "eldorian": "lara",
+   "english": "clear; intelligible",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7003",
+   "eldorian": "nova",
+   "english": "new",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7004",
+   "eldorian": "olda",
+   "english": "old",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7005",
+   "eldorian": "alta",
+   "english": "tall; high",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7006",
+   "eldorian": "basa",
+   "english": "low",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7007",
+   "eldorian": "lorga",
+   "english": "long",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7008",
+   "eldorian": "kurta",
+   "english": "short",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7009",
+   "eldorian": "rapa",
+   "english": "fast",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7010",
+   "eldorian": "lenta",
+   "english": "slow",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7011",
+   "eldorian": "fela",
+   "english": "easy; simple",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7012",
+   "eldorian": "difika",
+   "english": "difficult",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7013",
+   "eldorian": "firme",
+   "english": "strong",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7014",
+   "eldorian": "mola",
+   "english": "soft",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7015",
+   "eldorian": "seka",
+   "english": "dry",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7016",
+   "eldorian": "umida",
+   "english": "humid",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7017",
+   "eldorian": "rikha",
+   "english": "rich; wealthy",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7018",
+   "eldorian": "povra",
+   "english": "poor",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7019",
+   "eldorian": "libre",
+   "english": "free; unrestricted",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7020",
+   "eldorian": "komun",
+   "english": "shared; common",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7021",
+   "eldorian": "priva",
+   "english": "private",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7022",
+   "eldorian": "publika",
+   "english": "public",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7023",
+   "eldorian": "vora",
+   "english": "true",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7024",
+   "eldorian": "falsa",
+   "english": "false",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7025",
+   "eldorian": "regula",
+   "english": "regular; systematic",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7026",
+   "eldorian": "veraen",
+   "english": "correct; accurate",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7027",
+   "eldorian": "parla",
+   "english": "smooth; flowing",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7028",
+   "eldorian": "musika",
+   "english": "musical",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7029",
+   "eldorian": "natura",
+   "english": "natural",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7030",
+   "eldorian": "magi",
+   "english": "magic",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7031",
+   "eldorian": "mana",
+   "english": "mana",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7032",
+   "eldorian": "spira",
+   "english": "spirit",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7033",
+   "eldorian": "vida",
+   "english": "life",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7034",
+   "eldorian": "morta",
+   "english": "death",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7035",
+   "eldorian": "espria",
+   "english": "idea",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7036",
+   "eldorian": "senia",
+   "english": "knowledge",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7037",
+   "eldorian": "fonia",
+   "english": "sound; phoneme",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7038",
+   "eldorian": "akenta",
+   "english": "accent",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7039",
+   "eldorian": "dialeta",
+   "english": "dialect",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7040",
+   "eldorian": "grama",
+   "english": "grammar",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7041",
+   "eldorian": "letra",
+   "english": "letter",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7042",
+   "eldorian": "skriva",
+   "english": "writing; script",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7043",
+   "eldorian": "regra",
+   "english": "rule",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7044",
+   "eldorian": "forma",
+   "english": "shape; form",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7045",
+   "eldorian": "futura",
+   "english": "future",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7046",
+   "eldorian": "pasa",
+   "english": "past",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "7047",
+   "eldorian": "presen",
+   "english": "present",
+   "class": 7,
+   "category": "Quality, description and ideas"
+  },
+  {
+   "code": "8001",
+   "eldorian": "nul",
+   "english": "zero",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8002",
+   "eldorian": "du",
+   "english": "two",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8003",
+   "eldorian": "tri",
+   "english": "three",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8004",
+   "eldorian": "kar",
+   "english": "four",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8005",
+   "eldorian": "pen",
+   "english": "five",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8006",
+   "eldorian": "ses",
+   "english": "six",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8007",
+   "eldorian": "set",
+   "english": "seven",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8008",
+   "eldorian": "ot",
+   "english": "eight",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8009",
+   "eldorian": "nov",
+   "english": "nine",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8010",
+   "eldorian": "des",
+   "english": "ten",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8011",
+   "eldorian": "centa",
+   "english": "hundred",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8012",
+   "eldorian": "mil",
+   "english": "thousand",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8013",
+   "eldorian": "milion",
+   "english": "million",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8014",
+   "eldorian": "bila",
+   "english": "billion",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8015",
+   "eldorian": "unta",
+   "english": "first",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8016",
+   "eldorian": "duta",
+   "english": "second",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8017",
+   "eldorian": "trita",
+   "english": "third",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8018",
+   "eldorian": "orao",
+   "english": "hour",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8019",
+   "eldorian": "minuta",
+   "english": "minute",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8020",
+   "eldorian": "sekunda",
+   "english": "second (time)",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8021",
+   "eldorian": "sema",
+   "english": "week",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8022",
+   "eldorian": "mensa",
+   "english": "month",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8023",
+   "eldorian": "jara",
+   "english": "year",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8024",
+   "eldorian": "esta",
+   "english": "this",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8025",
+   "eldorian": "esa",
+   "english": "that",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8026",
+   "eldorian": "aki",
+   "english": "here",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8027",
+   "eldorian": "ali",
+   "english": "there",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8028",
+   "eldorian": "nunca",
+   "english": "never",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8029",
+   "eldorian": "sempra",
+   "english": "always",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8030",
+   "eldorian": "ave",
+   "english": "often",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "8031",
+   "eldorian": "rara",
+   "english": "rarely",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "9001",
+   "eldorian": "Orion Mark Voss",
+   "english": "Orion Mark Voss",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9002",
+   "eldorian": "Eldoria",
+   "english": "Eldoria",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9003",
+   "eldorian": "White City",
+   "english": "White City",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9004",
+   "eldorian": "Lina Eldoria",
+   "english": "Lina Eldoria",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9005",
+   "eldorian": "Crown",
+   "english": "Crown",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9006",
+   "eldorian": "Starspire",
+   "english": "Starspire",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9007",
+   "eldorian": "the Line",
+   "english": "the Line",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9008",
+   "eldorian": "Crucible",
+   "english": "Crucible",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9009",
+   "eldorian": "Academy",
+   "english": "Academy",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9010",
+   "eldorian": "Lirael",
+   "english": "Lirael",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9011",
+   "eldorian": "Vesper",
+   "english": "Vesper",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9012",
+   "eldorian": "Runa",
+   "english": "Runa",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9013",
+   "eldorian": "Camellia",
+   "english": "Camellia",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9014",
+   "eldorian": "Seraphina",
+   "english": "Seraphina",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9015",
+   "eldorian": "Celestina",
+   "english": "Celestina",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9016",
+   "eldorian": "Sage",
+   "english": "Sage",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9017",
+   "eldorian": "Athena",
+   "english": "Athena",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9018",
+   "eldorian": "Starline",
+   "english": "Starline",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9019",
+   "eldorian": "Voss Card",
+   "english": "Voss Card",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9020",
+   "eldorian": "Crown Mark",
+   "english": "Crown Mark",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9021",
+   "eldorian": "Hesh",
+   "english": "Hesh",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9022",
+   "eldorian": "Serravalle",
+   "english": "Serravalle",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9023",
+   "eldorian": "Namarai",
+   "english": "Namarai",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9024",
+   "eldorian": "Valcrest",
+   "english": "Valcrest",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9025",
+   "eldorian": "Qilun",
+   "english": "Qilun",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9026",
+   "eldorian": "Ironhold",
+   "english": "Ironhold",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9027",
+   "eldorian": "Adoria",
+   "english": "Adoria",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9028",
+   "eldorian": "Aurelan",
+   "english": "Aurelan",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9029",
+   "eldorian": "City of Light",
+   "english": "City of Light",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "9030",
+   "eldorian": "Lakemere",
+   "english": "Lakemere",
+   "class": 9,
+   "category": "Name registry"
+  },
+  {
+   "code": "0101",
+   "eldorian": "dikta",
+   "english": "JOB 1 - COMMAND: the bot obeys it",
+   "class": 0,
+   "category": "Control (bot job tags)",
+   "tag_only": true
+  },
+  {
+   "code": "0102",
+   "eldorian": "vera",
+   "english": "JOB 2 - CHECK: the bot tests it before acting",
+   "class": 0,
+   "category": "Control (bot job tags)",
+   "tag_only": true
+  },
+  {
+   "code": "0103",
+   "eldorian": "valo",
+   "english": "JOB 3 - VALUE: a level, size, speed or time",
+   "class": 0,
+   "category": "Control (bot job tags)",
+   "tag_only": true
+  },
+  {
+   "code": "0104",
+   "eldorian": "sava",
+   "english": "JOB 4 - TALK: kept on the receipt, never obeyed",
+   "class": 0,
+   "category": "Control (bot job tags)",
+   "tag_only": true
+  },
+  {
+   "code": "0105",
+   "eldorian": "klava",
+   "english": "JOB 5 - LOCKED: refused, a bot can never order it",
+   "class": 0,
+   "category": "Control (bot job tags)",
+   "tag_only": true
+  },
+  {
+   "code": "0201",
+   "eldorian": "tekna",
+   "english": "technology",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0202",
+   "eldorian": "maka",
+   "english": "machine",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0203",
+   "eldorian": "roba",
+   "english": "robot",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0204",
+   "eldorian": "menor",
+   "english": "AI; thinking machine (mena think + -or)",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0205",
+   "eldorian": "vanta",
+   "english": "agent; a bot sent to act for someone",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0206",
+   "eldorian": "tenor",
+   "english": "owner; the human a bot answers to (tena have + -or)",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0207",
+   "eldorian": "modela",
+   "english": "model (a trained AI)",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0208",
+   "eldorian": "neura",
+   "english": "neuron",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0209",
+   "eldorian": "gravo",
+   "english": "weight (inside a model)",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0210",
+   "eldorian": "cipa",
+   "english": "chip (say CHEE-pa)",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0211",
+   "eldorian": "memo",
+   "english": "memory",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0212",
+   "eldorian": "dato",
+   "english": "data",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0213",
+   "eldorian": "koda",
+   "english": "code",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0214",
+   "eldorian": "progra",
+   "english": "program",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0215",
+   "eldorian": "sensa",
+   "english": "sensor",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0216",
+   "eldorian": "motora",
+   "english": "motor",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0217",
+   "eldorian": "batera",
+   "english": "battery",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0218",
+   "eldorian": "kelia",
+   "english": "training (kela learn + -ia)",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0219",
+   "eldorian": "testa",
+   "english": "test",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0220",
+   "eldorian": "eror",
+   "english": "error",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0221",
+   "eldorian": "diara",
+   "english": "log; record of what a bot did",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0222",
+   "eldorian": "resiva",
+   "english": "receipt; signed proof of an action",
+   "class": 0,
+   "category": "Tekna - Machine and AI"
+  },
+  {
+   "code": "0223",
+   "eldorian": "dikta",
+   "english": "command; an order a bot may obey",
+   "class": 0,
+   "category": "Tekna - Actions"
+  },
+  {
+   "code": "0224",
+   "eldorian": "lansa",
+   "english": "start; launch",
+   "class": 0,
+   "category": "Tekna - Actions"
+  },
+  {
+   "code": "0225",
+   "eldorian": "halta",
+   "english": "stop",
+   "class": 0,
+   "category": "Tekna - Actions"
+  },
+  {
+   "code": "0226",
+   "eldorian": "pausa",
+   "english": "pause",
+   "class": 0,
+   "category": "Tekna - Actions"
+  },
+  {
+   "code": "0227",
+   "eldorian": "rinova",
+   "english": "reset; start fresh",
+   "class": 0,
+   "category": "Tekna - Actions"
+  },
+  {
+   "code": "0228",
+   "eldorian": "salva",
+   "english": "save",
+   "class": 0,
+   "category": "Tekna - Actions"
+  },
+  {
+   "code": "0229",
+   "eldorian": "sinka",
+   "english": "sync",
+   "class": 0,
+   "category": "Tekna - Actions"
+  },
+  {
+   "code": "0230",
+   "eldorian": "skana",
+   "english": "scan",
+   "class": 0,
+   "category": "Tekna - Actions"
+  },
+  {
+   "code": "0231",
+   "eldorian": "kalka",
+   "english": "calculate",
+   "class": 0,
+   "category": "Tekna - Actions"
+  },
+  {
+   "code": "0232",
+   "eldorian": "preda",
+   "english": "predict",
+   "class": 0,
+   "category": "Tekna - Actions"
+  },
+  {
+   "code": "0233",
+   "eldorian": "klava",
+   "english": "locked; refused to every bot",
+   "class": 0,
+   "category": "Tekna - Safety"
+  },
+  {
+   "code": "0234",
+   "eldorian": "permi",
+   "english": "permission",
+   "class": 0,
+   "category": "Tekna - Safety"
+  },
+  {
+   "code": "0235",
+   "eldorian": "limita",
+   "english": "limit",
+   "class": 0,
+   "category": "Tekna - Safety"
+  },
+  {
+   "code": "0236",
+   "eldorian": "aleta",
+   "english": "alert; warning",
+   "class": 0,
+   "category": "Tekna - Safety"
+  },
+  {
+   "code": "0237",
+   "eldorian": "trema",
+   "english": "fear",
+   "class": 0,
+   "category": "Tekna - Safety"
+  },
+  {
+   "code": "0238",
+   "eldorian": "novia",
+   "english": "news (nova new + -ia)",
+   "class": 0,
+   "category": "Tekna - Safety"
+  },
+  {
+   "code": "0239",
+   "eldorian": "fila",
+   "english": "streak; in a row",
+   "class": 0,
+   "category": "Tekna - Safety"
+  },
+  {
+   "code": "8032",
+   "eldorian": "karta",
+   "english": "fourth; a quarter (un karta = one quarter)",
+   "class": 8,
+   "category": "Numbers, quantity and time"
+  },
+  {
+   "code": "0240",
+   "eldorian": "gania",
+   "english": "profit; money made on paper (gana + -ia)",
+   "class": 0,
+   "category": "Tekna - Trading"
+  },
+  {
+   "code": "0241",
+   "eldorian": "perdia",
+   "english": "loss; money lost on paper (perda + -ia)",
+   "class": 0,
+   "category": "Tekna - Trading"
+  },
+  {
+   "code": "0242",
+   "eldorian": "vinsa",
+   "english": "win; a trade that ended up",
+   "class": 0,
+   "category": "Tekna - Trading"
+  },
+  {
+   "code": "0243",
+   "eldorian": "kosta",
+   "english": "cost; fees and slippage",
+   "class": 0,
+   "category": "Tekna - Trading"
+  },
+  {
+   "code": "0244",
+   "eldorian": "talia",
+   "english": "size; how big a trade is",
+   "class": 0,
+   "category": "Tekna - Trading"
+  },
+  {
+   "code": "0245",
+   "eldorian": "pozia",
+   "english": "open trade; a position still running",
+   "class": 0,
+   "category": "Tekna - Trading"
+  }
+ ]
+}

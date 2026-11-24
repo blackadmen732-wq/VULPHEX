@@ -53,27 +53,47 @@ class Policy:
 
 # ---------------------------------------------------------------- model router
 class ModelRouter:
-    """Cheap model for planning/classification/report; strong model for hard code reasoning. Both optional and local."""
+    """The brains. Big FAST models run in the cloud (NVIDIA / Gemini) so talking and training are never slow; the
+    uncensored model is used only when a job needs no refusals. Config: security/brains.json. Keys from the env."""
+    NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
+    GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+
     def __init__(self):
-        self.cheap = os.environ.get("VULPHEX_MODEL_CHEAP") or os.environ.get("COACH_MODEL") or "Goekdeniz-Guelmez/Josiefied-Qwen2.5-1.5B-Instruct-abliterated-v1"
-        self.strong = os.environ.get("VULPHEX_MODEL_STRONG") or self.cheap
-        self._cache = {}
+        try: self.cfg = json.load(open(os.path.join(HERE, "brains.json")))
+        except (OSError, ValueError): self.cfg = {"default": "uncensored", "models": {}}
+        self._local = {}
 
-    def pick(self, job): return self.strong if job in ("code_reasoning", "repair") else self.cheap
+    def pick(self, job):
+        for name, m in self.cfg.get("models", {}).items():
+            if job in (m.get("for") or []): return name, m
+        d = self.cfg.get("default", "fast")
+        return d, self.cfg.get("models", {}).get(d, {"provider": "local", "model": os.environ.get("COACH_MODEL", "")})
 
-    def ask(self, job, prompt, max_new_tokens=120):
-        name = self.pick(job)
-        if name not in self._cache:
+    def ask(self, job, prompt, max_new_tokens=160):
+        name, m = self.pick(job)
+        prov, model = m.get("provider", "local"), m.get("model", "")
+        try:
+            if prov == "nvidia": return self._cloud(self.NVIDIA_URL, os.environ.get("NVIDIA_API_KEY", "x"), model, prompt, max_new_tokens)
+            if prov == "gemini": return self._cloud(self.GEMINI_URL, os.environ.get("GEMINI_API_KEY", "x"), model, prompt, max_new_tokens)
+            return self._local_ask(model, prompt, max_new_tokens)
+        except Exception:
+            return None
+
+    def _cloud(self, url, key, model, prompt, mx):
+        import urllib.request
+        body = json.dumps({"model": model, "messages": [{"role": "user", "content": prompt}], "max_tokens": mx, "temperature": 0.4}).encode()
+        req = urllib.request.Request(url, data=body, headers={"content-type": "application/json", "authorization": "Bearer " + key})
+        with urllib.request.urlopen(req, timeout=120) as r:
+            d = json.loads(r.read())
+        return (d.get("choices") or [{}])[0].get("message", {}).get("content")
+
+    def _local_ask(self, name, prompt, mx):
+        if name not in self._local:
             try:
-                import local_llm
-                gen, why = local_llm.load(name, max_new_tokens=max_new_tokens)
-                self._cache[name] = gen
-            except Exception:
-                self._cache[name] = None
-        gen = self._cache[name]
-        if gen is None: return None
-        try: return gen(prompt)
-        except Exception: return None
+                import local_llm; gen, _ = local_llm.load(name, max_new_tokens=mx); self._local[name] = gen
+            except Exception: self._local[name] = None
+        gen = self._local[name]
+        return gen(prompt) if gen else None
 
 
 # ---------------------------------------------------------------- shared evidence database

@@ -133,6 +133,7 @@ class Core:
 
     # -- run one capability for one bot (through the registry + policy)
     def run_capability(self, bot, capability, target, log):
+        if capability == "agentic_coding": return 0          # on-demand only (artex.py agent), not part of a scan
         for a in R.adapters(capability):
             tool = a["tool"]
             if tool in R.CORE_TOOLS: continue                              # core capabilities handled elsewhere

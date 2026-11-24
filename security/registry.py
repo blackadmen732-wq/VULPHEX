@@ -41,7 +41,7 @@ def risk_of(capability, tool):
 def installed(tool):
     """A real scanner is 'ready' only if its binary is present; the two built-in fallbacks and core tools always are."""
     if tool in CORE_TOOLS or tool in ("recon",): return True
-    if tool in ("gitleaks", "trivy"): return True            # pure-Python fallback inside tools.py
+    if tool in ("gitleaks", "trivy", "semgrep"): return True       # pure-Python fallback inside tools.py
     return T.have(tool)                                       # external tools/repos: ready only when installed from their official source
 
 

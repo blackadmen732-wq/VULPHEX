@@ -26,11 +26,46 @@ class ToolMissing(Exception):
     def __init__(self, tool, how): super().__init__(f"{tool} is not installed. {how}"); self.tool = tool
 
 
+# ---------------------------------------------------------------- built-in code scanner (no install needed)
+_CODE_PATTERNS = [
+    ("high",   "SQL built by string concatenation", re.compile(r"(?i)(execute|cursor\.execute|query)\s*\(.*['\"]\s*\+\s*")),
+    ("high",   "Command injection via os.system/popen", re.compile(r"(?i)\b(os\.system|os\.popen|subprocess\.(call|run|Popen))\s*\(.*\+")),
+    ("high",   "Dangerous eval/exec on input", re.compile(r"(?i)\b(eval|exec)\s*\(")),
+    ("high",   "Insecure deserialization (pickle/yaml.load)", re.compile(r"(?i)\b(pickle\.loads?|yaml\.load)\s*\(")),
+    ("medium", "Shell=True in subprocess", re.compile(r"(?i)shell\s*=\s*True")),
+    ("medium", "Weak hash (md5/sha1)", re.compile(r"(?i)hashlib\.(md5|sha1)\s*\(")),
+    ("medium", "Request with TLS verification off", re.compile(r"(?i)verify\s*=\s*False")),
+    ("low",    "Debug mode left on", re.compile(r"(?i)debug\s*=\s*True")),
+]
+
+
+def builtin_code_scan(target):
+    findings = []
+    files = [target] if os.path.isfile(target) else []
+    if not files:
+        for root, dirs, names in os.walk(target):
+            dirs[:] = [d for d in dirs if d not in _SKIP_DIRS]
+            for n in names:
+                if n.endswith((".py", ".js", ".ts", ".php", ".rb", ".java", ".go", ".sh")): files.append(os.path.join(root, n))
+    for f in files[:20000]:
+        try:
+            if os.path.getsize(f) > 2_000_000: continue
+            for i, line in enumerate(open(f, errors="ignore"), 1):
+                if len(line) > 2000: continue
+                for sev, title, rx in _CODE_PATTERNS:
+                    if rx.search(line):
+                        findings.append({"severity": sev, "title": title, "where": f"{f}:{i}", "detail": "matched a risky code pattern (install semgrep for a deeper audit)"})
+                        break
+        except (OSError, UnicodeError):
+            continue
+    return findings
+
+
 # ---------------------------------------------------------------- Cinder: source-code audit (semgrep)
 def semgrep(target):
-    if not have("semgrep"): raise ToolMissing("semgrep", "pip install semgrep")
+    if not have("semgrep"): return builtin_code_scan(target)          # works with no install; semgrep goes deeper
     code, out, err = _run(["semgrep", "--config", "auto", "--json", "--quiet", target])
-    if not out.strip(): return []
+    if not out.strip(): return builtin_code_scan(target)
     res = json.loads(out).get("results", [])
     smap = {"ERROR": "high", "WARNING": "medium", "INFO": "low"}
     findings = []

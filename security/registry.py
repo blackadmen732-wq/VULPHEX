@@ -22,9 +22,10 @@ CAPABILITIES = {
     "finding_verification": [{"tool": "verify",    "risk": "read-only"}],
     "repair":               [{"tool": "fix",       "risk": "read-only"}],
     "monitoring":           [{"tool": "watch",     "risk": "read-only"}],
+    "agentic_coding":       [{"tool": "coder",     "risk": "read-only"}],
 }
 
-CORE_TOOLS = {"graph", "verify", "fix", "watch"}     # handled in core.py, not in tools.RUNNERS
+CORE_TOOLS = {"graph", "verify", "fix", "watch", "coder"}     # handled in core.py, not in tools.RUNNERS
 
 
 def adapters(capability):

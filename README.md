@@ -48,6 +48,19 @@ python3 security/artex.py findings                      # shared evidence databa
 python3 security/artex.py audit                         # audit log of every task
 ```
 
+## Give a bot hands — the coding agent
+Three bots (FOX AUDITOR, FOX FORGE, FOX REAPER) can use **Claude Code's body** — run commands, read/write/edit files,
+build and fix code — with **your uncensored brain** behind it and a security **skill** loaded (`security/skills/`). This
+is how FOX FORGE actually writes the fix and FOX REAPER scripts work against a target you declared.
+
+```bash
+# point it at your uncensored brain (e.g. Mira's Kaggle tunnel, or a local Ollama Anthropic endpoint):
+#   edit security/agent.json  (base_url + model)   and   export VULPHEX_BRAIN_TOKEN=...
+python3 security/artex.py agent "FOX FORGE" "fix the SQL injection in app.py" --cwd .
+```
+It streams each step and ends with a summary. Needs Claude Code installed (`curl -fsSL https://claude.ai/install.sh | bash`);
+with no brain configured it uses whatever `claude` is logged into. Every agent run is written to the audit log.
+
 ## Train them yourself — the Arena
 A local training room (a tab in your browser) to watch the brain learn and talk to the ancestor model:
 ```bash

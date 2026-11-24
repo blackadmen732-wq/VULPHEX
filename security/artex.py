@@ -38,6 +38,8 @@ def main(argv=None):
     sub.add_parser("findings", help="print the shared evidence database")
     sub.add_parser("audit", help="print the audit log of every task VULPHEX ran")
     sub.add_parser("bots", help="list the twelve FOX bots")
+    ag = sub.add_parser("agent", help="give a bot Claude Code + the uncensored brain to do a task")
+    ag.add_argument("bot"); ag.add_argument("mission"); ag.add_argument("--cwd", default=".")
     a = ap.parse_args(argv)
     scope = json.load(open(os.path.join(HERE, "scope.json")))
 
@@ -51,6 +53,13 @@ def main(argv=None):
         print(f"{len(rows)} audited task(s):")
         for r in rows: print(f"  {r['at']}  {r['bot']:14} {r['tool']:10} {r['risk']:11} {'in-scope' if r['in_scope'] else 'OUT-OF-SCOPE'}  {r['target']}")
         core.close(); return
+    if a.cmd == "agent":
+        core = C.Core(scope=scope)
+        name = next((b["name"] for b in core.team if b["name"].upper() == a.bot.upper() or a.bot.lower() in b["name"].lower()), None)
+        if not name: core.close(); sys.exit("No such bot. Try: " + ", ".join(b["name"] for b in core.team))
+        print(f"[{name}] working with Claude Code + the uncensored brain...\n")
+        res = core.code(name, a.mission, cwd=a.cwd, on_event=lambda k, v: print(f"  · {v if k=='say' else v.get('tool','')+' '+v.get('input','')}"[:140]))
+        core.close(); print("\n" + res["summary"]); return
     if a.cmd == "findings":
         core = C.Core(scope=scope); items = core.findings()
         print(f"{len(items)} findings in the evidence database:")

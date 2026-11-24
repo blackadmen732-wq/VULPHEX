@@ -19,6 +19,10 @@ Owner: Mark. Paper/research + authorized-security only. Keep his decisions; expl
     minus cost, PROVEN only past the rising luck bar (bc.required_z). Stored in the shared DB (brain_pop/brain_led).
 - SAFETY (kept, protects Mark, not a restriction on him): install from OFFICIAL sources only (trojaned forks exist);
     the audit log stays; don't add DoS/worm/mass-internet-scan/detection-evasion code; red bots target what he declares.
+- `security/agent.py` + `agent.json` + `skills/`: the coder. Gives FOX AUDITOR/FOX FORGE/FOX REAPER Claude Code's body
+  pointed at the uncensored brain (agent.json base_url/model; token from env VULPHEX_BRAIN_TOKEN/ANTHROPIC_AUTH_TOKEN) with
+  a FOX skill (fox-fix/fox-pentest/fox-recon) injected as the system prompt. Core.code(bot, mission, cwd) runs + audits it;
+  CLI `artex.py agent "<BOT>" "<mission>"`. spawn is injectable for tests. Capability agentic_coding (core tool 'coder').
 - `arena/`: the training room (owner wants to train them personally and watch). range.py = safe local practice range
   (planted vulns + answer key, localhost/files only). train.py = squad trains over rounds, brains evolve, team reward
   tracked (deterministic, offline). server.py + index.html = dashboard at 127.0.0.1:3006 (Jarvis-style guard): see the

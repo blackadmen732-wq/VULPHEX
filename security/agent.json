@@ -1,0 +1,7 @@
+{
+  "_help": "The coding brain for VULPHEX's bots: Claude Code's body (tools) pointed at YOUR uncensored brain. Fill base_url + model (e.g. Mira's Kaggle tunnel, or a local Ollama Anthropic endpoint). Leave blank to use whatever `claude` is already logged into. Token is read from env ANTHROPIC_AUTH_TOKEN or VULPHEX_BRAIN_TOKEN, never stored here.",
+  "base_url": "",
+  "model": "huihui_ai/qwen3-coder-abliterated:30b",
+  "allowed_tools": ["Bash", "Read", "Write", "Edit", "Glob", "Grep", "WebFetch"],
+  "timeout_s": 1800
+}

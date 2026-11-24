@@ -100,3 +100,41 @@ class PipelineTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CoderAgentTest(unittest.TestCase):
+    def test_builds_a_claude_command_with_brain_tools_and_skill(self):
+        import agent as AG
+        cfg = {"model": "huihui_ai/qwen3-coder-abliterated:30b", "allowed_tools": ["Bash", "Read", "Edit"], "timeout_s": 10}
+        cmd = AG.build_cmd("fix the SQLi in app.py", cfg, "fox-fix", bot="FOX FORGE")
+        self.assertEqual(cmd[0], os.environ.get("VULPHEX_CLAUDE_BIN", "claude"))
+        self.assertIn("-p", cmd); self.assertIn("fix the SQLi in app.py", cmd)
+        self.assertIn("--allowedTools", cmd); self.assertIn("Edit", cmd)
+        self.assertIn("--model", cmd); self.assertIn("huihui_ai/qwen3-coder-abliterated:30b", cmd)
+        sysp = cmd[cmd.index("--append-system-prompt") + 1]
+        self.assertIn("FOX FORGE", sysp); self.assertIn("smallest", sysp)        # the fox-fix skill text is injected
+
+    def test_env_points_claude_at_the_uncensored_brain(self):
+        import agent as AG
+        os.environ["VULPHEX_BRAIN_TOKEN"] = "tok123"
+        env = AG.env_for({"base_url": "https://brain.example/", "model": "m1"})
+        self.assertEqual(env["ANTHROPIC_BASE_URL"], "https://brain.example/")
+        self.assertEqual(env["ANTHROPIC_AUTH_TOKEN"], "tok123"); self.assertEqual(env["ANTHROPIC_MODEL"], "m1")
+        del os.environ["VULPHEX_BRAIN_TOKEN"]
+
+    def test_run_streams_steps_and_summary_from_a_fake_claude(self):
+        import agent as AG
+        lines = [
+            json.dumps({"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "Edit", "input": {"file_path": "app.py"}}]}}),
+            json.dumps({"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "Bash", "input": {"command": "python -m pytest"}}]}}),
+            json.dumps({"type": "result", "result": "Fixed the SQL injection in app.py by parameterizing the query; tests pass."}),
+        ]
+        seen = []
+        res = AG.run("fix it", skill="fox-fix", bot="FOX FORGE", spawn=lambda cmd, cwd, t: iter(lines), on_event=lambda k, v: seen.append(k))
+        self.assertTrue(res["ok"]); self.assertIn("parameteriz", res["summary"])
+        self.assertEqual([s["tool"] for s in res["steps"]], ["Edit", "Bash"]); self.assertIn("step", seen)
+
+    def test_three_bots_have_the_coder_capability(self):
+        team = json.load(open(ROOT / "security/team.json"))["bots"]
+        coders = [b["name"] for b in team if "agentic_coding" in b["capabilities"]]
+        self.assertEqual(set(coders), {"FOX AUDITOR", "FOX FORGE", "FOX REAPER"})

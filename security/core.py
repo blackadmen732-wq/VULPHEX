@@ -15,6 +15,7 @@ sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(ROOT, "engine"))
 import tools as T
 import registry as R
 import brain as B
+import agent as AG
 
 SEV_RANK = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
 
@@ -252,5 +253,16 @@ class Core:
         rep = os.path.join(ROOT, "security-report.md"); old = open(rep).read() if os.path.exists(rep) else "# VULPHEX security report\n"
         head, _, rest = old.partition("\n"); open(rep, "w").write(head + "\n\n" + body + "\n" + rest)
         return body, counts
+
+    SKILL_FOR = {"FOX FORGE": "fox-fix", "FOX AUDITOR": "fox-fix", "FOX SCOUT": "fox-recon",
+                 "FOX REAPER": "fox-pentest", "FOX BREACH": "fox-pentest", "FOX WRAITH": "fox-pentest"}
+
+    def code(self, bot_name, mission, cwd=".", on_event=None):
+        """Give a bot Claude Code's body + the uncensored brain to actually do a coding/pentest task. Audited."""
+        skill = self.SKILL_FOR.get(bot_name, "fox-fix")
+        self.audit(bot_name, "agentic_coding", "coder", cwd, "read-only", int(os.path.exists(cwd)))
+        res = AG.run(mission, cwd=cwd, skill=skill, bot=bot_name, on_event=on_event)
+        self.log_task(bot_name, "agentic_coding", cwd, "done" if res["ok"] else "error", res["summary"][:200])
+        return res
 
     def close(self): self.db.close()

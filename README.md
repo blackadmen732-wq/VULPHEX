@@ -13,30 +13,34 @@ python3 vulphex.py                      # all bots, ~400 stocks, writes report.m
 python3 vulphex.py --stocks 300 --bots Rocket,Hydra
 ```
 
-## 2. Security team — `security/artex.py`
-Nine AI agents (`security/team.json`) over **real** scanners, with a planner, shared evidence, dedup, a human-approval
-gate and an auto report writer — the ARTEX idea, built defensively.
+## 2. Security team — `security/`
+Nine **FOX bots**, one coordinated team on a shared command core — the ARTEX idea, built defensively. The bots hand
+work to each other: discover → map → audit → scan → **verify** → repair → monitor.
 
-| Agent | Does | Tool |
+| Bot | Role | Drives |
 |---|---|---|
-| Cinder | audits your source code | semgrep |
-| Vault | hunts leaked secrets/keys | gitleaks (built-in fallback) |
-| Sieve | checks vulnerable dependencies | trivy (built-in fallback) |
-| Warden | scans a web app | OWASP ZAP |
-| Probe | checks known CVEs on a host | nuclei |
-| Scout | maps exposed ports/services | built-in |
-| Mirror | red-teams an LLM | garak |
-| Crucible | tests an AI app for prompt-injection | pyrit |
-| Ward | AI security regression checks | promptfoo |
+| FOX SCOUT | asset discovery (ports, services) | recon |
+| FOX ATLAS | maps assets, code and findings into one graph | core |
+| FOX AUDITOR | source code + leaked secrets | semgrep, gitleaks (built-in fallback) |
+| FOX INSPECTOR | web apps and APIs | OWASP ZAP, nuclei |
+| FOX BASTION | dependencies, containers, infra | trivy (built-in fallback) |
+| FOX PROOF | **verifies** every finding so a bot can't invent one | core |
+| FOX AEGIS | red-teams your LLMs and AI apps | garak, pyrit, promptfoo |
+| FOX FORGE | drafts scoped fixes for review (never auto-applies) | core |
+| FOX WATCH | tracks what's open, re-runs to catch regressions | core |
 
-**Safety, enforced in code:** local agents read files you own (always allowed). Active (network) agents run **only**
-when the target matches `security/scope.json` *and* you pass `--approve`. Out of scope = refused. No exploitation,
-no evasion, no third-party targets.
+**The command core** (`security/core.py`): a policy engine (scope + approval + risk level), a shared SQLite evidence
+database (assets, findings, task history), and a model router (cheap model for planning/reports, strong for code).
+
+**Safety, enforced in code:** local bots read files you own (always allowed). Active (network) bots run **only** when
+the target matches `security/scope.json` *and* you pass `--approve`. Out of scope = refused. No exploitation, no
+evasion, no third-party targets, and no attack-framework images are pulled — vetted tools are driven by name.
 
 ```bash
-bash security/install-tools.sh                     # install the real scanners
-python3 security/artex.py code /path/to/your/repo  # audit your own code (no approval needed)
-# edit security/scope.json to add a host you own, then:
-python3 security/artex.py scan your-own-site.com --approve
-python3 security/artex.py plan "check my web app and its code" your-own-site.com --approve
+bash security/install-tools.sh                         # install the real scanners
+python3 security/artex.py code /path/to/your/repo      # local FOX bots on your own code
+python3 security/artex.py findings                     # the shared evidence database
+# add a host you own to security/scope.json, then:
+python3 security/artex.py mission your-site.com --approve
+python3 security/artex.py plan "check my web app and code" your-site.com --approve
 ```

@@ -37,12 +37,7 @@ def main():
     sh("pip install -q transformers accelerate >/dev/null 2>&1 || true")
     env = {**os.environ, "COACH_MODEL": MODEL, "VULPHEX_ARENA_PORT": str(PORT), **brain_env()}
 
-    # 1) STUDY: the bots read every repo and learn its technique into the brain
-    print("Studying the repos (learning each tool's technique)...", flush=True)
-    study = subprocess.run([sys.executable, "security/artex.py", "study"], cwd=DIR, env=env, capture_output=True, text=True, timeout=3600)
-    print(study.stdout[-1500:], flush=True)
-
-    # 2) serve the Arena dashboard
+    # 2) serve the Arena dashboard FIRST (so you get the link in ~1 min; the model + study load in the background)
     srv = subprocess.Popen([sys.executable, "arena/server.py"], cwd=DIR, env=env)
     for _ in range(40):
         try:
@@ -62,8 +57,16 @@ def main():
     print("\n" + "=" * 70)
     print("VULPHEX ARENA IS LIVE. Open this in your browser:\n")
     print(f"    {url}\n")
-    print("Pick a squad, press Train, watch them learn, and chat to the ancestor brain.")
+    print("Pick a squad, press Train, watch them learn. (The brain is still loading — the chat warms up in a few minutes.)")
     print("=" * 70, flush=True)
+
+    def study_bg():
+        try:
+            r = subprocess.run([sys.executable, "security/artex.py", "study"], cwd=DIR, env=env, capture_output=True, text=True, timeout=5400)
+            print("\n[study done]\n" + r.stdout[-1000:], flush=True)
+        except Exception as e:
+            print("[study skipped:", e, "]", flush=True)
+    threading.Thread(target=study_bg, daemon=True).start()
     srv.wait()
 
 

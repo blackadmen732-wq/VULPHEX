@@ -1,6 +1,7 @@
 # VULPHEX arena: the practice range and the training loop — deterministic, offline. The squad should learn (team
 # reward trends up as the brains evolve toward playbooks that catch the planted vulns).
 import os, sqlite3, sys, tempfile, unittest
+from unittest import mock
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "arena")); sys.path.insert(0, str(ROOT / "security"))
@@ -56,6 +57,28 @@ class TrainTest(unittest.TestCase):
         self.assertEqual(stages, {"solo", "pair", "squad"})
         self.assertTrue(any(h["stage"] == "squad" for h in hist))
 
+
+
+
+class BrainStatusTest(unittest.TestCase):
+    def test_cloud_model_without_credential_is_not_marked_available(self):
+        import server as arena_server
+        with mock.patch.object(arena_server.C, "ModelRouter") as router:
+            router.return_value.pick.return_value = ("fast", {"provider": "nvidia", "model": "example"})
+            with mock.patch.dict(os.environ, {"NVIDIA_API_KEY": ""}):
+                status = arena_server.chat_model_status()
+        self.assertEqual(status["status"], "needs_configuration")
+        self.assertFalse(status["configured"])
+        self.assertIn("NVIDIA_API_KEY", status["hint"])
+
+    def test_configured_model_is_only_marked_not_tested(self):
+        import server as arena_server
+        with mock.patch.object(arena_server.C, "ModelRouter") as router:
+            router.return_value.pick.return_value = ("fast", {"provider": "nvidia", "model": "example"})
+            with mock.patch.dict(os.environ, {"NVIDIA_API_KEY": "test-token"}):
+                status = arena_server.chat_model_status()
+        self.assertEqual(status["status"], "not_tested")
+        self.assertTrue(status["configured"])
 
 if __name__ == "__main__":
     unittest.main()

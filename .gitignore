@@ -8,3 +8,6 @@ security/vulphex.db
 arena/range_files/
 *.tmp
 security-report.md
+security/brain_model/
+security/finetune_data.jsonl
+security/_ft_run/

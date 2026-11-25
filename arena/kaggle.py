@@ -56,7 +56,9 @@ def main():
     env = {**os.environ, "COACH_MODEL": MODEL, "VULPHEX_ARENA_PORT": str(PORT), **brain_env()}
 
     # 2) serve the Arena dashboard FIRST (so you get the link in ~1 min; the model + study load in the background)
-    srv = subprocess.Popen([sys.executable, "arena/server.py"], cwd=DIR, env=env)
+    def launch():
+        return subprocess.Popen([sys.executable, "arena/server.py"], cwd=DIR, env=env)
+    srv = launch()
     for _ in range(40):
         try:
             import urllib.request; urllib.request.urlopen(f"http://127.0.0.1:{PORT}/api/state", timeout=2); break
@@ -85,7 +87,33 @@ def main():
         except Exception as e:
             print("[study skipped:", e, "]", flush=True)
     threading.Thread(target=study_bg, daemon=True).start()
-    srv.wait()
+
+    # 4) AUTO-UPDATE: pull GitHub every couple minutes and restart the Arena when `main` changes, so you NEVER have to
+    # re-run this cell. The tunnel keeps pointing at the same port, so your link stays the same.
+    AUTO_UPDATE = int(os.environ.get("VULPHEX_AUTOUPDATE_SECS", "120"))
+    def head():
+        try: return subprocess.run("git rev-parse HEAD", shell=True, cwd=DIR, capture_output=True, text=True).stdout.strip()
+        except Exception: return ""
+    print(f"Auto-update ON: checking GitHub every {AUTO_UPDATE}s; the Arena restarts itself when main changes (same link). "
+          "Leave this cell running — no need to re-run it.", flush=True)
+    while True:
+        try:
+            time.sleep(AUTO_UPDATE)
+            if srv.poll() is not None:                            # server died -> relaunch
+                print("Arena stopped -> relaunching.", flush=True); srv = launch(); continue
+            before = head()
+            subprocess.run("git pull -q --ff-only || true", shell=True, cwd=DIR)
+            after = head()
+            if after and before and after != before:
+                print(f"GitHub update {before[:7]} -> {after[:7]} — restarting the Arena with the new code (same link).", flush=True)
+                srv.terminate()
+                try: srv.wait(timeout=20)
+                except Exception: srv.kill()
+                srv = launch()
+        except KeyboardInterrupt:
+            break
+        except Exception as e:
+            print("[auto-update] error:", e, flush=True)
 
 
 if __name__ == "__main__":

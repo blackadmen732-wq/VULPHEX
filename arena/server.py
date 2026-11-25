@@ -192,7 +192,7 @@ class H(BaseHTTPRequestHandler):
                 msg = (f"Switched the active brain to **{name}**. I'll use it for chat, planning and coaching now."
                        if cmd else f"Back to automatic routing (**{name}** for chat).")
                 return self._send(200, {"answer": msg, "model": name})
-            intent = interpret(core(), q)                          # understand a comment and DO it
+            with LOCK: intent = interpret(core(), q)               # understand a comment and DO it (DB read under lock)
             if intent is not None: return self._send(200, intent)
             warm()
             try: ans = core().router.ask("chat", _persona(q), max_new_tokens=240)

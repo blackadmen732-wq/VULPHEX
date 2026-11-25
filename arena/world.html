@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VULPHEX — 3D World</title>
+<style>
+  :root { --gold:#ffb703; --bg:#0a0b0f; --panel:rgba(18,20,28,.86); --line:#20242e; --blue:#56b4ff; --red:#ff5c6c; --text:#e8eaf0; --dim:#8a90a0; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Arial,sans-serif; overflow:hidden; }
+  #scene { position:fixed; inset:0; }
+  .topbar { position:fixed; top:0; left:0; right:0; height:52px; display:flex; align-items:center; gap:14px; padding:0 16px;
+            background:linear-gradient(180deg,rgba(10,11,15,.92),rgba(10,11,15,0)); z-index:5; }
+  .logo { font-weight:800; letter-spacing:3px; color:var(--gold); }
+  .logo small { color:var(--dim); font-weight:600; letter-spacing:2px; margin-left:8px; }
+  a.back { margin-left:auto; color:var(--dim); text-decoration:none; font-size:13px; border:1px solid var(--line); padding:6px 12px; border-radius:8px; }
+  a.back:hover { color:var(--text); border-color:var(--gold); }
+  .panel { position:fixed; background:var(--panel); border:1px solid var(--line); border-radius:14px; backdrop-filter:blur(8px); z-index:4; }
+  #hud { top:64px; left:16px; width:230px; padding:14px 16px; }
+  #hud h3 { margin:0 0 10px; font-size:12px; letter-spacing:2px; color:var(--gold); }
+  .stat { display:flex; justify-content:space-between; font-size:13px; padding:4px 0; border-bottom:1px solid rgba(255,255,255,.04); }
+  .stat b { color:var(--text); } .stat span { color:var(--dim); }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+  #controls { bottom:16px; left:16px; display:flex; gap:10px; z-index:5; }
+  button { background:var(--gold); color:#1a1300; border:0; font-weight:700; padding:10px 16px; border-radius:10px; cursor:pointer; font-size:14px; }
+  button.ghost { background:transparent; color:var(--text); border:1px solid var(--line); }
+  button:disabled { opacity:.5; cursor:default; }
+  #lab { top:64px; right:16px; width:330px; max-height:calc(100vh - 160px); padding:14px 16px; display:flex; flex-direction:column; }
+  #lab h3 { margin:0 0 8px; font-size:12px; letter-spacing:2px; color:var(--gold); }
+  #lab p.hint { margin:0 0 10px; font-size:12px; color:var(--dim); line-height:1.5; }
+  textarea { width:100%; height:120px; resize:vertical; background:#0d0f16; color:var(--text); border:1px solid var(--line);
+             border-radius:8px; padding:8px; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12px; }
+  .row { display:flex; gap:8px; align-items:center; margin-top:8px; }
+  input[type=text] { flex:1; background:#0d0f16; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:7px 9px; font-size:12px; }
+  #findings { margin-top:10px; overflow:auto; }
+  .finding { border:1px solid var(--line); border-left-width:3px; border-radius:8px; padding:8px 10px; margin-bottom:7px; font-size:12px; background:#0d0f16; }
+  .finding .t { font-weight:700; } .finding .w { color:var(--dim); font-size:11px; margin-top:3px; word-break:break-all; }
+  .sev-critical { border-left-color:#ff2d55; } .sev-high { border-left-color:#ff5c6c; }
+  .sev-medium { border-left-color:#ffb703; } .sev-low,.sev-info { border-left-color:#56b4ff; }
+  .tag { font-size:10px; text-transform:uppercase; letter-spacing:1px; padding:1px 6px; border-radius:4px; background:rgba(255,255,255,.08); margin-left:6px; }
+  #toast { position:fixed; bottom:72px; left:50%; transform:translateX(-50%); background:var(--panel); border:1px solid var(--line);
+           padding:8px 16px; border-radius:10px; font-size:13px; z-index:6; opacity:0; transition:opacity .3s; pointer-events:none; }
+  .nodeLabel { position:fixed; transform:translate(-50%,-50%); font-size:11px; font-weight:600; color:var(--text); pointer-events:none;
+               text-shadow:0 1px 3px #000; z-index:3; white-space:nowrap; }
+  .nodeLabel small { color:var(--dim); font-weight:400; }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div class="topbar">
+  <div class="logo">VULPHEX <small>3D WORLD</small></div>
+  <a class="back" href="/">← Dashboard</a>
+</div>
+
+<div class="panel" id="hud">
+  <h3>BRAIN STATUS</h3>
+  <div class="stat"><span>Ancestor brain</span><b id="s-brain">…</b></div>
+  <div class="stat"><span>Tactics tried</span><b id="s-tried">0</b></div>
+  <div class="stat"><span>Proven tactics</span><b id="s-proven">0</b></div>
+  <div class="stat"><span>Repos studied</span><b id="s-repos">0</b></div>
+  <div class="stat"><span>Techniques learned</span><b id="s-tech">0</b></div>
+  <div class="stat"><span>Bots</span><b id="s-bots">12</b></div>
+</div>
+
+<div class="panel" id="lab">
+  <h3>TEST LAB — upload code</h3>
+  <p class="hint">Paste or drop code you own. VULPHEX runs a local, read-only audit (secrets, SQL/command injection, weak deps) — nothing leaves the server, no target is touched.</p>
+  <textarea id="code" placeholder="# paste code here, or choose a file below"></textarea>
+  <div class="row">
+    <input type="text" id="fname" value="snippet.py" title="filename (sets the language)">
+    <input type="file" id="file" style="display:none">
+    <button class="ghost" id="pick">File…</button>
+  </div>
+  <div class="row"><button id="scan" style="flex:1">Scan this code</button></div>
+  <div id="findings"></div>
+</div>
+
+<div id="controls">
+  <button id="train">▶ Train all</button>
+  <button class="ghost" id="reset">Reset view</button>
+</div>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const toast = (m) => { const t=$('#toast'); t.textContent=m; t.style.opacity=1; clearTimeout(t._h); t._h=setTimeout(()=>t.style.opacity=0,2600); };
+
+// ---------- three.js scene ----------
+const canvas = $('#scene');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x0a0b0f, 0.018);
+const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 500);
+const CAM0 = new THREE.Vector3(0, 10, 34);
+camera.position.copy(CAM0);
+
+scene.add(new THREE.AmbientLight(0x667, 0.6));
+const key = new THREE.PointLight(0xffb703, 1.2, 160); key.position.set(0,18,10); scene.add(key);
+const blu = new THREE.PointLight(0x56b4ff, 0.7, 160); blu.position.set(-24,-6,-10); scene.add(blu);
+
+// ground grid
+const grid = new THREE.GridHelper(120, 40, 0x20242e, 0x14161c); grid.position.y=-6; scene.add(grid);
+
+// central ancestor brain
+const brainMat = new THREE.MeshStandardMaterial({color:0xffb703, emissive:0xffb703, emissiveIntensity:0.6, roughness:0.3, metalness:0.4});
+const brain = new THREE.Mesh(new THREE.IcosahedronGeometry(2.4, 1), brainMat);
+scene.add(brain);
+const brainGlow = new THREE.Mesh(new THREE.IcosahedronGeometry(3.1,1), new THREE.MeshBasicMaterial({color:0xffb703, transparent:true, opacity:0.08, wireframe:true}));
+scene.add(brainGlow);
+
+const bots = [];        // {mesh, line, data, baseScale, angle, radius, side, el}
+const labelLayer = document.body;
+
+function makeBot(d, i, n, side) {
+  const ring = side==='red' ? 8 : 13;
+  const inRing = side==='red' ? i : i;
+  const total = n;
+  const angle = (i / total) * Math.PI * 2;
+  const radius = ring + (i%2)*1.6;
+  const color = side==='red' ? 0xff5c6c : 0x56b4ff;
+  const geo = new THREE.SphereGeometry(0.9, 20, 20);
+  const mat = new THREE.MeshStandardMaterial({color, emissive:color, emissiveIntensity:0.25, roughness:0.4, metalness:0.3});
+  const mesh = new THREE.Mesh(geo, mat);
+  const y = side==='red' ? 2.5 : -1.0;
+  mesh.position.set(Math.cos(angle)*radius, y, Math.sin(angle)*radius);
+  scene.add(mesh);
+  const lgeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), mesh.position.clone()]);
+  const line = new THREE.Line(lgeo, new THREE.LineBasicMaterial({color, transparent:true, opacity:0.22}));
+  scene.add(line);
+  const el = document.createElement('div'); el.className='nodeLabel'; labelLayer.appendChild(el);
+  return {mesh, line, data:d, angle, radius, y, side, el, color};
+}
+
+function layout(state) {
+  bots.forEach(b => { scene.remove(b.mesh); scene.remove(b.line); b.el.remove(); });
+  bots.length = 0;
+  const blue = state.bots.filter(b=>b.side!=='red');
+  const red  = state.bots.filter(b=>b.side==='red');
+  blue.forEach((d,i)=> bots.push(makeBot(d,i,blue.length,'blue')));
+  red.forEach((d,i)=> bots.push(makeBot(d,i,red.length,'red')));
+}
+
+// ---------- orbit controls (custom, no deps) ----------
+let yaw=0, pitch=0.25, dist=36, drag=false, px=0, py=0;
+canvas.addEventListener('pointerdown', e=>{drag=true;px=e.clientX;py=e.clientY;});
+addEventListener('pointerup', ()=>drag=false);
+addEventListener('pointermove', e=>{ if(!drag) return; yaw-=(e.clientX-px)*0.005; pitch=Math.max(-0.4,Math.min(1.2,pitch+(e.clientY-py)*0.005)); px=e.clientX;py=e.clientY; });
+canvas.addEventListener('wheel', e=>{ dist=Math.max(14,Math.min(70,dist+e.deltaY*0.03)); e.preventDefault(); }, {passive:false});
+$('#reset').onclick=()=>{yaw=0;pitch=0.25;dist=36;};
+
+function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+
+function project(v){ const p=v.clone().project(camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight, vis:p.z<1}; }
+
+let t=0;
+function animate(){
+  requestAnimationFrame(animate);
+  t+=0.016;
+  camera.position.set(Math.sin(yaw)*dist*Math.cos(pitch), 8+Math.sin(pitch)*dist, Math.cos(yaw)*dist*Math.cos(pitch));
+  camera.lookAt(0,0,0);
+  brain.rotation.y+=0.004; brain.rotation.x+=0.0015; brainGlow.rotation.y-=0.003;
+  const pulse=1+Math.sin(t*2)*0.05; brainGlow.scale.setScalar(pulse);
+  bots.forEach((b,i)=>{
+    const prov=(b.data.proven||0), runs=(b.data.runs||0);
+    const bob=Math.sin(t*1.5+i)*0.25;
+    b.mesh.position.y=b.y+bob;
+    const s=1+Math.min(prov,5)*0.08 + (runs>0?0.05:0);
+    b.mesh.scale.setScalar(s*(1+Math.sin(t*3+i)*(runs>0?0.06:0.01)));
+    b.mesh.material.emissiveIntensity=0.2+Math.min(prov,6)*0.07+Math.abs(Math.sin(t*2+i))*0.1;
+    b.line.geometry.setFromPoints([new THREE.Vector3(0,0,0), b.mesh.position.clone()]);
+    const sp=project(b.mesh.position);
+    b.el.style.display = sp.vis ? 'block':'none';
+    b.el.style.left=sp.x+'px'; b.el.style.top=(sp.y-22)+'px';
+    b.el.innerHTML = `${b.data.name}<br><small>${b.data.proven||0} proven · ${b.data.runs||0} runs</small>`;
+  });
+  renderer.render(scene,camera);
+}
+animate();
+
+// ---------- state ----------
+async function refresh(){
+  try{
+    const r=await fetch('/api/state'); const s=await r.json();
+    if(!bots.length) layout(s); else s.bots.forEach((d,i)=>{ if(bots[i]) bots[i].data=d; });
+    $('#s-tried').textContent=s.tactics_tried||0;
+    $('#s-proven').textContent=s.bots.reduce((a,b)=>a+(b.proven||0),0);
+    $('#s-repos').textContent=s.studied_repos||0;
+    $('#s-tech').textContent=s.learned_techniques||0;
+    $('#s-bots').textContent=s.bots.length;
+    const on=s.brain_online, load=s.brain_loading;
+    $('#s-brain').innerHTML = `<span class="dot" style="background:${on?'#3ad29f':load?'#ffb703':'#ff5c6c'}"></span>${on?'ONLINE':load?'loading':'offline'}`;
+  }catch(e){ $('#s-brain').textContent='server?'; }
+}
+refresh(); setInterval(refresh, 4000);
+
+// ---------- train ----------
+$('#train').onclick=async()=>{
+  const btn=$('#train'); btn.disabled=true; btn.textContent='Training…'; toast('Training all bots on the range…');
+  try{
+    const squad=bots.slice(0,6).map(b=>b.data.name);
+    const r=await fetch('/api/train',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({squad,rounds:40})});
+    const d=await r.json(); const last=(d.history||[]).slice(-1)[0];
+    toast(last?`Done — team reward ${last.team_reward}`:'Training done'); refresh();
+  }catch(e){ toast('Training failed — is the server up?'); }
+  btn.disabled=false; btn.textContent='▶ Train all';
+};
+
+// ---------- test lab ----------
+$('#pick').onclick=()=>$('#file').click();
+$('#file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; $('#fname').value=f.name; $('#code').value=await f.text(); };
+$('#scan').onclick=async()=>{
+  const code=$('#code').value.trim(); if(!code){ toast('Paste some code first'); return; }
+  const btn=$('#scan'); btn.disabled=true; btn.textContent='Scanning…';
+  try{
+    const r=await fetch('/api/test',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({code, filename:$('#fname').value||'snippet.py'})});
+    const d=await r.json(); const list=$('#findings'); list.innerHTML='';
+    const fs=d.findings||[];
+    if(!fs.length){ list.innerHTML='<div class="finding sev-info"><div class="t">No issues found by the built-in scanners ✓</div></div>'; }
+    fs.forEach(f=>{ const el=document.createElement('div'); el.className='finding sev-'+(f.severity||'info');
+      el.innerHTML=`<div class="t">${f.title}<span class="tag">${f.severity}</span></div><div class="w">${f.where||''}${f.tool?(' · '+f.tool):''}</div>`; list.appendChild(el); });
+    toast(`${fs.length} finding${fs.length===1?'':'s'}`); refresh();
+  }catch(e){ toast('Scan failed'); }
+  btn.disabled=false; btn.textContent='Scan this code';
+};
+</script>
+</body>
+</html>

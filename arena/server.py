@@ -115,9 +115,12 @@ class H(BaseHTTPRequestHandler):
                 try: studied = c.db.execute("SELECT COUNT(*), SUM(learned) FROM studied").fetchone()
                 except Exception: studied = (0, 0)
                 brain_on = BRAIN["ready"] or bool(os.environ.get("NVIDIA_API_KEY") or os.environ.get("GEMINI_API_KEY"))
+                models = [{"id": k, "provider": m.get("provider", "local"), "model": m.get("model", "")}
+                          for k, m in (c.router.cfg.get("models", {}) or {}).items()]
                 st = {"bots": brain_summary(c), "tactics_tried": tried[0] if tried else 0,
                       "brain_online": brain_on, "brain_loading": BRAIN["loading"] and not brain_on, "brain_err": BRAIN["err"],
                       "studied_repos": studied[0] or 0, "learned_techniques": studied[1] or 0,
+                      "model": c.router.current(), "models": models,
                       "range": RG.answer_key(os.path.join(HERE, "range_files")) or []}
             return self._send(200, st)
         return self._send(404, {"error": "not found"})
@@ -132,7 +135,8 @@ class H(BaseHTTPRequestHandler):
             code = str(body.get("code", ""))[:200000]
             fname = os.path.basename(str(body.get("filename", "snippet.py")) or "snippet.py")
             if not code.strip(): return self._send(400, {"error": "no code"})
-            return self._send(200, {"findings": scan_code(code, fname)})
+            fs = scan_code(code, fname)
+            return self._send(200, {"findings": fs, **_redblue_on_findings(fs)})
         if self.path == "/api/train":
             squad = [str(x) for x in (body.get("squad") or [])][:6]
             rounds = max(1, min(int(body.get("rounds") or 20), 200))
@@ -147,9 +151,21 @@ class H(BaseHTTPRequestHandler):
                 hist = TR.snowball(core(), rounds=rounds)
                 if P.snapshot(DB): print("[persist] saved brain to Supabase", flush=True)
             return self._send(200, {"history": hist})
+        if self.path == "/api/model":
+            want = str(body.get("model", "")).strip()
+            with LOCK:
+                active = core().router.set_override(want or None)
+            return self._send(200, {"model": active or core().router.current(), "cleared": not active})
         if self.path == "/api/ask":
             q = str(body.get("text", "")).strip()[:2000]
             if not q: return self._send(400, {"error": "say something"})
+            cmd = model_command(q)                                 # "switch model to X" — act, don't chat
+            if cmd is not None:
+                with LOCK: active = core().router.set_override(cmd or None)
+                name = active or core().router.current()
+                msg = (f"Switched the active brain to **{name}**. I'll use it for chat, planning and coaching now."
+                       if cmd else f"Back to automatic routing (**{name}** for chat).")
+                return self._send(200, {"answer": msg, "model": name})
             warm()
             try: ans = core().router.ask("chat", _persona(q), max_new_tokens=240)
             except Exception as e: ans = None; BRAIN["err"] = str(e)[:120]
@@ -160,6 +176,29 @@ class H(BaseHTTPRequestHandler):
                        "For instant answers, add your NVIDIA_API_KEY as a Kaggle Secret.")
             return self._send(200, {"answer": ans})
         return self._send(404, {"error": "not found"})
+
+
+def model_command(q):
+    """Detect a 'switch model' instruction in chat. Returns the model id to switch to, '' to clear the override
+    (automatic routing), or None if this isn't a switch command."""
+    s = q.lower()
+    if not (("model" in s or "brain" in s) and any(w in s for w in ("switch", "change", "use", "set", "swap"))):
+        return None
+    if any(w in s for w in ("auto", "default", "reset", "clear", "normal")): return ""
+    if any(w in s for w in ("uncensor", "qwen", "abliterat", "ancestor")): return "uncensored"
+    if any(w in s for w in ("nvidia", "nemotron", "fast", "cloud")): return "fast"
+    if "gemini" in s or "google" in s: return "gemini"
+    if "big" in s or "reason" in s: return "big"
+    return ""                                                     # said "switch model" with no target -> clear override
+
+
+def _redblue_on_findings(findings):
+    """Frame a Test Lab scan as red-vs-blue: blue CAUGHT everything the scanners found; red could WEAPONIZE the
+    exploit-class issues (injection / secrets / critical+high). Honest, derived from the real findings."""
+    exploit = ("inject", "sql", "command", "secret", "key", "token", "password", "deserial", "traversal", "rce")
+    breaches = sum(1 for f in findings
+                   if f.get("severity") in ("critical", "high") or any(k in (f.get("title", "").lower()) for k in exploit))
+    return {"blue_caught": len(findings), "red_breaches": breaches}
 
 
 def _persona(q):

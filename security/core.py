@@ -62,8 +62,20 @@ class ModelRouter:
         try: self.cfg = json.load(open(os.path.join(HERE, "brains.json")))
         except (OSError, ValueError): self.cfg = {"default": "uncensored", "models": {}}
         self._local = {}
+        self.override = os.environ.get("VULPHEX_BRAIN_OVERRIDE") or None   # when set, forces this model for every job
+
+    def set_override(self, name):
+        """Switch the active brain at runtime (Arena 'switch model'). None/''' clears it (back to per-job routing)."""
+        self.override = name if (name and name in self.cfg.get("models", {})) else None
+        return self.override
+
+    def current(self):
+        """The model the user is effectively talking to right now."""
+        return self.override or os.environ.get("VULPHEX_BRAIN_DEFAULT") or self.cfg.get("default", "fast")
 
     def pick(self, job):
+        if self.override and self.override in self.cfg.get("models", {}):
+            return self.override, self.cfg["models"][self.override]
         for name, m in self.cfg.get("models", {}).items():
             if job in (m.get("for") or []): return name, m
         d = os.environ.get("VULPHEX_BRAIN_DEFAULT") or self.cfg.get("default", "fast")

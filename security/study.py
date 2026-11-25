@@ -135,6 +135,49 @@ def study_repo(core, ask, query):
     return {"matched": len(hits), "repo": hits[0]["repo"], "techniques": total}
 
 
+def _extract_code(text):
+    """Pull the Python out of a model reply (strip ``` fences and any prose around them)."""
+    t = (text or "").strip()
+    if "```" in t:
+        parts = t.split("```")
+        for i in range(1, len(parts), 2):
+            block = parts[i]
+            if block.startswith("python"): block = block[6:]
+            elif block.startswith("py"): block = block[2:]
+            if block.strip(): return block.strip()
+    return t
+
+
+def reproduce(core, name, ask):
+    """Teach a bot to DO what a repo does: read the repo's docs + source, have the model write a self-contained Python
+    adapter that reproduces its core technique (VULPHEX tools.py style), and save it for review. Returns a summary.
+    The generated code is SAVED, never auto-run — the owner reviews it first."""
+    q = (name or "").strip().lower()
+    hits = [e for e in repo_list() if q and q in e["repo"].lower()]
+    if not hits: return {"ok": False, "repo": None, "msg": f"no mapped repo matches '{name}'"}
+    e = hits[0]
+    doc = fetch_docs(e["repo"]); code = fetch_code(e["repo"])
+    if not (doc or code): return {"ok": False, "repo": e["repo"], "msg": "could not read the repo's docs or source"}
+    prompt = ("You are a security engineer. Write ONE self-contained Python function `run(target)` that reproduces the "
+              f"CORE technique of '{e['repo']}' ({e['does']}) as a VULPHEX adapter. Match security/tools.py style: return a "
+              "list of finding dicts, each {severity, title, where, detail}. Use ONLY the Python standard library. Output "
+              f"ONLY the code (no prose).\n\nDOCS:\n{doc[:4000]}\n\nSOURCE:\n{code[:4000]}")
+    try: out = ask(prompt) or ""
+    except Exception as ex: return {"ok": False, "repo": e["repo"], "msg": f"model error: {ex}"}
+    src = _extract_code(out)
+    if "def run" not in src: return {"ok": False, "repo": e["repo"], "msg": "the model did not return a usable adapter"}
+    short = e["repo"].split("/")[-1].split(" ")[0]
+    outdir = os.path.join(HERE, "reproduced"); os.makedirs(outdir, exist_ok=True)
+    path = os.path.join(outdir, f"{short}.py")
+    header = f"# VULPHEX reproduction of {e['repo']} ({e['does']}) for {e['bot']}.\n# Model-written from the repo's docs+source. REVIEW before use; do not run against anything you don't own.\n"
+    with open(path, "w", encoding="utf-8") as f: f.write(header + src + "\n")
+    core.db.execute("CREATE TABLE IF NOT EXISTS reproduced (repo TEXT PRIMARY KEY, bot TEXT, file TEXT, lines INTEGER, at TEXT)")
+    core.db.execute("INSERT OR REPLACE INTO reproduced VALUES (?,?,?,?,datetime('now'))",
+                    (e["repo"], e["bot"], path, len(src.splitlines())))
+    core.db.commit()
+    return {"ok": True, "repo": e["repo"], "bot": e["bot"], "file": path, "lines": len(src.splitlines())}
+
+
 def run(core, ask=None, on_event=None):
     """Study every repo, store each learned technique in the shared DB, return a summary. Two tables:
     `studied` (one row per repo, how many techniques learned) and `tactics` (one row per technique)."""

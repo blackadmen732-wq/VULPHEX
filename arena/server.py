@@ -42,6 +42,26 @@ def start_study(repo=None):
     return True
 
 
+def start_reproduce(name):
+    """Have a bot reproduce a repo's technique: the model writes a Python adapter from the repo's docs+source and saves
+    it for review. Runs in the background on its own DB connection."""
+    if JOB["running"]: return False
+    JOB["running"] = "reproduce:" + name
+    def go():
+        try:
+            c = C.Core(db_path=DB, scope={"hosts": []})
+            ask = (lambda p: c.router.ask("code_reasoning", p, max_new_tokens=1400))
+            r = STU.reproduce(c, name, ask)
+            print("[reproduce]", r.get("file") or r.get("msg"), flush=True)
+            c.close(); P.snapshot(DB)
+        except Exception as e:
+            print("[reproduce] error:", e, flush=True)
+        finally:
+            JOB["running"] = None
+    import threading as _t; _t.Thread(target=go, daemon=True).start()
+    return True
+
+
 import threading as _th
 _CORE = None
 BRAIN = {"ready": False, "loading": False, "err": ""}
@@ -177,6 +197,11 @@ class H(BaseHTTPRequestHandler):
             repo = str(body.get("repo", "")).strip() or None
             started = start_study(repo)
             return self._send(200, {"started": started, "busy": not started, "job": JOB["running"]})
+        if self.path == "/api/reproduce":
+            name = str(body.get("repo", "")).strip()
+            if not name: return self._send(400, {"error": "name a repo"})
+            started = start_reproduce(name)
+            return self._send(200, {"started": started, "busy": not started, "job": JOB["running"]})
         if self.path == "/api/model":
             want = str(body.get("model", "")).strip()
             with LOCK:
@@ -251,12 +276,14 @@ def interpret(core, q):
         return {"answer": f"Right now: {prov[0] if prov else 0} proven tactics across the bots, "
                           f"{tried[0] if tried else 0} tactics tried, {st[0]} repos studied with {st[1]} techniques learned. "
                           f"Run Train or Snowball to push them further."}
-    # reproduce a tool
-    if any(w in s for w in ("reproduce", "recreate", "rebuild", "clone the technique")) and full:
-        start_study(short)
-        return {"answer": f"Deep-studying **{full}** now (reading its docs and source). Once studied, a coder bot can "
-                          f"rebuild it on your Claude with:\n`python3 security/artex.py agent \"FOX FORGE\" \"reproduce "
-                          f"{short}'s core technique as a Python adapter\"`", "action": "study", "repo": short}
+    # reproduce a tool — a bot writes an adapter that DOES what the repo does
+    if any(w in s for w in ("reproduce", "recreate", "rebuild", "clone the technique", "do the same", "same thing")) and full:
+        started = start_reproduce(short)
+        if not started:
+            return {"answer": "A study/reproduce job is already running — let it finish first, then ask again."}
+        return {"answer": f"On it — a bot is reading **{full}**'s docs and source and writing a Python adapter that "
+                          f"reproduces its core technique. It saves to `security/reproduced/{short}.py` for you to "
+                          f"review (it won't auto-run). Give it a moment.", "action": "study", "repo": short}
     # study / learn
     if any(w in s for w in ("study", "learn from", "read the repo", "read the code", "understand the repo", "understand the code", "train on the repo")):
         if full:

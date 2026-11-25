@@ -10,13 +10,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(os.path.dirname(HERE), "security"))
 import core as C
 import trainer as TR
+import persist as P
 
 SQUAD = ["FOX SCOUT", "FOX AUDITOR", "FOX INSPECTOR", "FOX BASTION", "FOX BREACH", "FOX WRAITH"]
+DB = os.path.join(os.path.dirname(HERE), "security", "vulphex.db")
 
 
 def one_pass(per=15):
-    core = C.Core(db_path=os.path.join(os.path.dirname(HERE), "security", "vulphex.db"),
-                  scope={"hosts": []})
+    if P.restore(DB): print("[persist] restored brain from Supabase", flush=True)
+    core = C.Core(db_path=DB, scope={"hosts": []})
     ask = None
     try:                                                       # use the uncensored model as the Lina coach if present
         g = core.router.ask("coach", "ping", max_new_tokens=4)
@@ -27,6 +29,7 @@ def one_pass(per=15):
     tried = core.db.execute("SELECT v FROM brain_led WHERE k='tried'").fetchone()
     last = hist[-1]["team_reward"] if hist else 0
     core.close()
+    if P.snapshot(DB): print("[persist] saved brain to Supabase", flush=True)
     return {"rounds": len(hist), "team_reward_end": last, "proven_tactics": proven, "tactics_tried": tried[0] if tried else 0, "coach": ask is not None}
 
 

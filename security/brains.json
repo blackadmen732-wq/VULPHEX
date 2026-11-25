@@ -1,10 +1,10 @@
 {
-  "_help": "VULPHEX's brains. Big fast models run in the CLOUD (NVIDIA, Gemini) — no download, only called during training/chat, so it is never slow. The uncensored model is for when a task needs no refusals; it runs local/Kaggle (NVIDIA hosts no abliterated model). The router picks one per job. Keys come from the environment (NVIDIA_API_KEY, GEMINI_API_KEY); in Mark's cloud session they are already connected.",
+  "_help": "VULPHEX's brains. HYBRID: the fast NVIDIA cloud model handles chat + study (instant, no download); the uncensored ancestor model (Kaggle GPU) handles plan + coach — so the model that TRAINS and proposes tactics has no refusals, while chat stays fast. Needs the NVIDIA_API_KEY set for chat; the uncensored model loads on the GPU the first time a plan/coach runs. The router picks one per job. Keys come from the environment (NVIDIA_API_KEY, GEMINI_API_KEY).",
   "default": "fast",
   "models": {
-    "fast":       {"provider": "nvidia", "model": "nvidia/nemotron-3-ultra-550b-a55b", "for": ["chat", "study", "plan", "coach"]},
+    "fast":       {"provider": "nvidia", "model": "nvidia/nemotron-3-ultra-550b-a55b", "for": ["chat", "study"]},
     "big":        {"provider": "nvidia", "model": "nvidia/nemotron-3-ultra-550b-a55b", "for": ["reason", "code_reasoning"]},
     "gemini":     {"provider": "gemini", "model": "gemini-flash-latest", "for": []},
-    "uncensored": {"provider": "local",  "model": "Goekdeniz-Guelmez/Josiefied-Qwen2.5-1.5B-Instruct-abliterated-v1", "for": ["uncensored"]}
+    "uncensored": {"provider": "local",  "model": "Goekdeniz-Guelmez/Josiefied-Qwen2.5-1.5B-Instruct-abliterated-v1", "for": ["uncensored", "plan", "coach"]}
   }
 }

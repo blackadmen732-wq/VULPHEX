@@ -11,6 +11,7 @@ sys.path.insert(0, HERE); sys.path.insert(0, os.path.join(ROOT, "security"))
 import core as C
 import trainer as TR
 import range as RG
+import persist as P
 
 PORT = int(os.environ.get("VULPHEX_ARENA_PORT", "3006"))
 DB = os.path.join(ROOT, "security", "vulphex.db")
@@ -26,6 +27,7 @@ def core():
     per request (that was why the chat looked dead). Mark's weak Chromebook carries nothing; this runs on the server."""
     global _CORE
     if _CORE is None:
+        if P.restore(DB): print("[persist] restored brain from Supabase", flush=True)
         _CORE = C.Core(db_path=DB, scope=json.load(open(os.path.join(ROOT, "security", "scope.json"))))
     return _CORE
 
@@ -105,6 +107,7 @@ class H(BaseHTTPRequestHandler):
             with LOCK:
                 RG.build(os.path.join(HERE, "range_files"))
                 hist = TR.train(core(), squad, rounds=rounds, range_dir=os.path.join(HERE, "range_files"))
+                if P.snapshot(DB): print("[persist] saved brain to Supabase", flush=True)
             return self._send(200, {"history": hist})
         if self.path == "/api/ask":
             q = str(body.get("text", "")).strip()[:2000]

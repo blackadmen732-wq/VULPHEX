@@ -42,6 +42,36 @@ def start_study(repo=None):
     return True
 
 
+import time as _time
+AUTO = {"on": os.environ.get("VULPHEX_AUTOTRAIN", "1") not in ("0", "false", "off", ""),
+        "passes": 0, "last": None, "interval": int(os.environ.get("VULPHEX_AUTOTRAIN_INTERVAL", "300"))}
+AUTOSQUAD = ["FOX SCOUT", "FOX AUDITOR", "FOX INSPECTOR", "FOX BASTION", "FOX BREACH", "FOX WRAITH"]
+
+
+def autotrain_loop():
+    """Keep the squad training on its own — even with nobody watching. Each pass runs a snowball (red vs blue) and a
+    range round, then persists to Supabase, so progress accrues and survives restarts. Skips a tick if another job is
+    running, so it never collides with a manual Train/Study/Snowball."""
+    print("[autotrain] self-training loop started", flush=True)
+    while True:
+        try:
+            if AUTO["on"] and not JOB["running"]:
+                JOB["running"] = "autotrain"
+                try:
+                    c = C.Core(db_path=DB, scope={"hosts": []})
+                    rng = os.path.join(HERE, "range_files"); RG.build(rng)
+                    TR.snowball(c, rounds=20)
+                    TR.train(c, AUTOSQUAD, rounds=20, range_dir=rng)
+                    c.close(); P.snapshot(DB)
+                    AUTO["passes"] += 1; AUTO["last"] = _time.strftime("%Y-%m-%d %H:%M:%S")
+                    print(f"[autotrain] pass {AUTO['passes']} done at {AUTO['last']}", flush=True)
+                finally:
+                    JOB["running"] = None
+        except Exception as e:
+            print("[autotrain] error:", e, flush=True); JOB["running"] = None
+        _time.sleep(max(60, AUTO["interval"]))
+
+
 def start_reproduce(name):
     """Have a bot reproduce a repo's technique: the model writes a Python adapter from the repo's docs+source and saves
     it for review. Runs in the background on its own DB connection."""
@@ -163,6 +193,8 @@ class H(BaseHTTPRequestHandler):
                       "brain_online": brain_on, "brain_loading": BRAIN["loading"] and not brain_on, "brain_err": BRAIN["err"],
                       "studied_repos": studied[0] or 0, "learned_techniques": studied[1] or 0,
                       "model": c.router.current(), "models": models,
+                      "autotrain": {"on": AUTO["on"], "passes": AUTO["passes"], "last": AUTO["last"], "interval": AUTO["interval"]},
+                      "persist": P.enabled(),
                       "range": RG.answer_key(os.path.join(HERE, "range_files")) or []}
             return self._send(200, st)
         return self._send(404, {"error": "not found"})
@@ -202,6 +234,10 @@ class H(BaseHTTPRequestHandler):
             if not name: return self._send(400, {"error": "name a repo"})
             started = start_reproduce(name)
             return self._send(200, {"started": started, "busy": not started, "job": JOB["running"]})
+        if self.path == "/api/autotrain":
+            AUTO["on"] = bool(body.get("on")) if "on" in body else (not AUTO["on"])
+            if body.get("interval"): AUTO["interval"] = max(60, int(body["interval"]))
+            return self._send(200, {"on": AUTO["on"], "interval": AUTO["interval"], "passes": AUTO["passes"]})
         if self.path == "/api/model":
             want = str(body.get("model", "")).strip()
             with LOCK:
@@ -303,6 +339,12 @@ def interpret(core, q):
                           "That builds a dataset from everything the bots studied (plus a teacher model writing answers) "
                           "and saves a fine-tuned model to security/brain_model/ — VULPHEX then uses it as the ancestor "
                           "brain automatically. Study the repos first so there's plenty to learn from."}
+    # autonomous self-training
+    if any(w in s for w in ("without me", "by itself", "on its own", "auto train", "auto-train", "keep training", "train forever", "train while", "self-train", "24/7", "even when")):
+        AUTO["on"] = not any(w in s for w in ("stop", "off", "disable", "pause"))
+        return {"answer": (f"Self-training is **ON** — the squad trains itself about every {AUTO['interval']}s and saves "
+                           "each pass, even when you're away. Watch the passes climb." if AUTO["on"]
+                           else "Self-training is **OFF** — it'll only train when you press a button.")}
     # train / snowball
     if "train" in s and not any(w in s for w in ("training going", "how is train")):
         return {"answer": "Starting a training run on the practice range.", "action": "train"}
@@ -321,6 +363,7 @@ def main():
     srv = ThreadingHTTPServer(("127.0.0.1", PORT), H)
     print(f"VULPHEX Arena: http://localhost:{PORT}  (Ctrl+C to close)", flush=True)
     warm()                                                   # start loading the brain on the GPU right away
+    import threading as _t3; _t3.Thread(target=autotrain_loop, daemon=True).start()   # train on its own, even when away
     try: srv.serve_forever()
     except KeyboardInterrupt: pass
 

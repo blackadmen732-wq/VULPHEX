@@ -79,6 +79,8 @@
   <div class="stat"><span>Repos studied</span><b id="s-repos">0</b></div>
   <div class="stat"><span>Techniques</span><b id="s-tech">0</b></div>
   <div class="stat"><span>Snowball pressure</span><b id="s-pressure">0</b></div>
+  <div class="stat"><span>Self-training</span><b id="s-auto">…</b></div>
+  <div class="stat"><span>Memory (Supabase)</span><b id="s-persist">…</b></div>
   <div class="stat"><span>Bots</span><b id="s-bots">13</b></div>
 </div>
 
@@ -113,6 +115,7 @@
 <div id="controls">
   <button id="train">▶ Train all</button>
   <button class="red" id="snow">⚔ Snowball (red vs blue)</button>
+  <button class="ghost" id="auto">♾ Auto-train</button>
   <button class="ghost" id="reset">Reset view</button>
 </div>
 <div id="toast"></div>
@@ -191,6 +194,8 @@ addEventListener('pointerup',e=>{if(drag&&moved<6)pick3d(e);drag=false;});
 addEventListener('pointermove',e=>{if(!drag)return;moved+=Math.abs(e.clientX-px)+Math.abs(e.clientY-py);yaw-=(e.clientX-px)*0.005;pitch=Math.max(-0.4,Math.min(1.2,pitch+(e.clientY-py)*0.005));px=e.clientX;py=e.clientY;});
 canvas.addEventListener('wheel',e=>{dist=Math.max(14,Math.min(72,dist+e.deltaY*0.03));e.preventDefault();},{passive:false});
 $('#reset').onclick=()=>{yaw=0;pitch=0.25;dist=36;};
+$('#auto').onclick=async()=>{try{const d=await (await fetch('/api/autotrain',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({})})).json();
+  toast(d.on?`Self-training ON — a pass every ${d.interval}s`:'Self-training off');refresh();}catch(_){toast('toggle failed');}};
 function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 addEventListener('resize',resize); resize();
 function project(v){const p=v.clone().project(camera);return{x:(p.x*0.5+0.5)*innerWidth,y:(-p.y*0.5+0.5)*innerHeight,vis:p.z<1};}
@@ -239,6 +244,9 @@ async function refresh(){
     $('#s-proven').textContent=s.bots.reduce((a,b)=>a+(b.proven||0),0);
     $('#s-repos').textContent=s.studied_repos||0; $('#s-tech').textContent=s.learned_techniques||0; $('#s-bots').textContent=s.bots.length;
     $('#s-model').textContent=s.model||'—';
+    const at=s.autotrain||{}; $('#s-auto').innerHTML=at.on?`<span style="color:#3ad29f">ON · ${at.passes||0} passes</span>`:'<span style="color:#8a90a0">off</span>';
+    $('#auto').textContent=(at.on?'♾ Auto-train: ON':'♾ Auto-train: off');
+    $('#s-persist').innerHTML=s.persist?'<span style="color:#3ad29f">saving ✓</span>':'<span style="color:#ff5c6c">not set</span>';
     const on=s.brain_online,load=s.brain_loading;
     $('#s-brain').innerHTML=`<span class="dot" style="background:${on?'#3ad29f':load?'#ffb703':'#ff5c6c'}"></span>${on?'ONLINE':load?'loading':'offline'}`;
     if(JSON.stringify(s.models)!==JSON.stringify(MODELS)){ MODELS=s.models||[];

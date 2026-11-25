@@ -99,7 +99,7 @@
 <div class="panel" id="chat">
   <h3>TALK TO THE ANCESTOR BRAIN</h3>
   <div id="log"></div>
-  <div class="row"><input type="text" id="q" placeholder='ask anything, or "switch model to uncensored"'><button id="send">➤</button></div>
+  <div class="row"><input type="text" id="q" placeholder='ask, or command: "study sqlmap" · "train" · "snowball" · "switch model to uncensored"'><button id="send">➤</button></div>
 </div>
 
 <div class="panel" id="botinfo"><span class="close" id="biclose">✕</span>
@@ -281,10 +281,12 @@ function addMsg(who,txt){const l=$('#log');const d=document.createElement('div')
 async function sendChat(){const q=$('#q').value.trim();if(!q)return;$('#q').value='';addMsg('you',q);
   const typing=$('#log').appendChild(document.createElement('div'));typing.className='msg ai';typing.innerHTML='<b>BRAIN</b>…';
   try{const d=await (await fetch('/api/ask',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:q})})).json();
-    typing.innerHTML=`<b>BRAIN</b>${esc(d.answer||'(no answer)')}`;$('#log').scrollTop=$('#log').scrollHeight;if(d.model)refresh();}
+    typing.innerHTML=`<b>BRAIN</b>${esc(d.answer||'(no answer)')}`;$('#log').scrollTop=$('#log').scrollHeight;
+    if(d.action==='train') $('#train').click(); else if(d.action==='snowball') $('#snow').click(); else if(d.action==='study') refresh();
+    if(d.model) refresh();}
   catch(_){typing.innerHTML='<b>BRAIN</b>(server not reachable)';}}
 $('#send').onclick=sendChat; $('#q').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat();});
-addMsg('ai','I am the ancestor brain. Ask me about attacking or defending your systems — or say "switch model to uncensored".');
+addMsg('ai','I am the ancestor brain. Ask me anything, or give a command: "study artex", "study all repos", "train", "snowball", "switch model to uncensored", "how are they doing".');
 </script>
 </body>
 </html>

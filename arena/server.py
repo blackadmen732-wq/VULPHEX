@@ -267,6 +267,15 @@ def interpret(core, q):
         start_study(None)
         return {"answer": "Deep-studying **all 31 repos** in the background — docs + source for each, several techniques "
                           "each, saved to the brain. Watch the Techniques counter climb.", "action": "study", "repo": ""}
+    # fine-tune the ancestor model itself (the real "make the model smarter" step)
+    if any(w in s for w in ("fine-tune", "finetune", "fine tune", "pretrain", "pre-train", "teach the model", "train qwen", "train the qwen", "train the model")):
+        return {"answer": "Fine-tuning the Qwen ancestor model changes its actual weights, so it needs a GPU and runs on "
+                          "Kaggle, not here. On your Kaggle notebook (GPU on):\n"
+                          "`pip install -q transformers peft trl datasets accelerate bitsandbytes`\n"
+                          "`python3 security/finetune.py --teacher`\n"
+                          "That builds a dataset from everything the bots studied (plus a teacher model writing answers) "
+                          "and saves a fine-tuned model to security/brain_model/ — VULPHEX then uses it as the ancestor "
+                          "brain automatically. Study the repos first so there's plenty to learn from."}
     # train / snowball
     if "train" in s and not any(w in s for w in ("training going", "how is train")):
         return {"answer": "Starting a training run on the practice range.", "action": "train"}

@@ -100,6 +100,11 @@ class ModelRouter:
         return (d.get("choices") or [{}])[0].get("message", {}).get("content")
 
     def _local_ask(self, name, prompt, mx):
+        ft = os.environ.get("VULPHEX_BRAIN_MODEL")                 # a fine-tuned ancestor model takes over if present
+        if not ft:
+            cand = os.path.join(HERE, "brain_model")
+            if os.path.isdir(cand): ft = cand
+        if ft: name = ft
         if name not in self._local:
             try:
                 import local_llm; gen, _ = local_llm.load(name, max_new_tokens=mx); self._local[name] = gen

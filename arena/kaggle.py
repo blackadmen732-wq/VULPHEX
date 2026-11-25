@@ -35,6 +35,14 @@ def brain_env():
     if claude: env["ANTHROPIC_API_KEY"] = claude; print("Claude key found -> Claude is the teacher (reproduce + fine-tune).", flush=True)
     gemini = secret("GEMINI_API_KEY")
     if gemini: env["GEMINI_API_KEY"] = gemini
+    # Supabase: training persists across restarts. URL defaults to the project; you only add the SUPABASE_KEY secret.
+    sup_url = secret("SUPABASE_URL") or "https://mhahkbssltukjhusjsjf.supabase.co"
+    sup_key = secret("SUPABASE_KEY") or secret("SUPABASE_SERVICE_KEY") or secret("SUPABASE_ANON_KEY")
+    if sup_key:
+        env["SUPABASE_URL"] = sup_url; env["SUPABASE_KEY"] = sup_key
+        print("Supabase connected -> training persists across restarts.", flush=True)
+    else:
+        print("No SUPABASE_KEY secret -> training won't be saved across restarts (add it to keep progress).", flush=True)
     if not nvidia:
         print("No NVIDIA secret -> using the uncensored model on this GPU (slower to start).", flush=True)
         env["VULPHEX_BRAIN_DEFAULT"] = "uncensored"

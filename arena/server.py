@@ -31,8 +31,9 @@ def start_study(repo=None):
         try:
             c = C.Core(db_path=DB, scope={"hosts": []})
             ask = (lambda p: c.router.ask("study", p, max_new_tokens=70))
-            if repo: STU.study_repo(c, ask, repo)
-            else: STU.run(c, ask=ask)
+            log_activity("study", f"Studying {repo or 'all repos'} — reading docs + source…")
+            if repo: r = STU.study_repo(c, ask, repo); log_activity("study", f"Studied {r.get('repo') or repo} — {r.get('techniques', 0)} techniques learned")
+            else: r = STU.run(c, ask=ask); log_activity("study", f"Studied all repos — {r.get('techniques', 0)} techniques learned")
             c.close(); P.snapshot(DB)
         except Exception as e:
             print("[study] error:", e, flush=True)
@@ -46,6 +47,13 @@ import time as _time
 AUTO = {"on": os.environ.get("VULPHEX_AUTOTRAIN", "1") not in ("0", "false", "off", ""),
         "passes": 0, "last": None, "interval": int(os.environ.get("VULPHEX_AUTOTRAIN_INTERVAL", "300"))}
 AUTOSQUAD = ["FOX SCOUT", "FOX AUDITOR", "FOX INSPECTOR", "FOX BASTION", "FOX BREACH", "FOX WRAITH"]
+ACTIVITY = []                                                   # recent plain-language events, so you can SEE it working
+
+
+def log_activity(kind, msg):
+    ACTIVITY.append({"t": _time.strftime("%H:%M:%S"), "kind": kind, "msg": msg})
+    del ACTIVITY[:-40]
+    print(f"[activity] {msg}", flush=True)
 
 
 def autotrain_loop():
@@ -60,11 +68,14 @@ def autotrain_loop():
                 try:
                     c = C.Core(db_path=DB, scope={"hosts": []})
                     rng = os.path.join(HERE, "range_files"); RG.build(rng)
-                    TR.snowball(c, rounds=20)
-                    TR.train(c, AUTOSQUAD, rounds=20, range_dir=rng)
-                    c.close(); P.snapshot(DB)
+                    sb = TR.snowball(c, rounds=20)
+                    tr = TR.train(c, AUTOSQUAD, rounds=20, range_dir=rng)
+                    saved = P.snapshot(DB); c.close()
                     AUTO["passes"] += 1; AUTO["last"] = _time.strftime("%Y-%m-%d %H:%M:%S")
-                    print(f"[autotrain] pass {AUTO['passes']} done at {AUTO['last']}", flush=True)
+                    sp = sb[-1]["pressure"] if sb else 0; rew = tr[-1]["team_reward"] if tr else 0
+                    br = sum(x["red_through"] for x in sb); ca = sum(x["blue_caught"] for x in sb)
+                    log_activity("train", f"Self-training pass {AUTO['passes']} — red got {br} through, blue caught {ca}, "
+                                          f"pressure {sp}, team reward {rew}" + (" (saved)" if saved else ""))
                 finally:
                     JOB["running"] = None
         except Exception as e:
@@ -81,8 +92,10 @@ def start_reproduce(name):
         try:
             c = C.Core(db_path=DB, scope={"hosts": []})
             ask = (lambda p: c.router.ask("code_reasoning", p, max_new_tokens=1400))
+            log_activity("reproduce", f"Reproducing {name} — a bot is writing an adapter…")
             r = STU.reproduce(c, name, ask)
-            print("[reproduce]", r.get("file") or r.get("msg"), flush=True)
+            log_activity("reproduce", (f"Reproduced {r['repo']} → {r['file']} ({r['lines']} lines)" if r.get("ok")
+                                       else f"Reproduce {name} failed — {r.get('msg')}"))
             c.close(); P.snapshot(DB)
         except Exception as e:
             print("[reproduce] error:", e, flush=True)
@@ -194,7 +207,7 @@ class H(BaseHTTPRequestHandler):
                       "studied_repos": studied[0] or 0, "learned_techniques": studied[1] or 0,
                       "model": c.router.current(), "models": models,
                       "autotrain": {"on": AUTO["on"], "passes": AUTO["passes"], "last": AUTO["last"], "interval": AUTO["interval"]},
-                      "persist": P.enabled(),
+                      "persist": P.enabled(), "busy": JOB["running"], "activity": ACTIVITY[-14:][::-1],
                       "range": RG.answer_key(os.path.join(HERE, "range_files")) or []}
             return self._send(200, st)
         return self._send(404, {"error": "not found"})
@@ -218,12 +231,15 @@ class H(BaseHTTPRequestHandler):
                 RG.build(os.path.join(HERE, "range_files"))
                 hist = TR.train(core(), squad, rounds=rounds, range_dir=os.path.join(HERE, "range_files"))
                 if P.snapshot(DB): print("[persist] saved brain to Supabase", flush=True)
+            last = (hist or [{}])[-1]; log_activity("train", f"Training run — team reward {last.get('team_reward', 0)}")
             return self._send(200, {"history": hist})
         if self.path == "/api/snowball":
             rounds = max(1, min(int(body.get("rounds") or 30), 200))
             with LOCK:
                 hist = TR.snowball(core(), rounds=rounds)
                 if P.snapshot(DB): print("[persist] saved brain to Supabase", flush=True)
+            br = sum(x["red_through"] for x in hist); ca = sum(x["blue_caught"] for x in hist)
+            log_activity("snow", f"Snowball — red got {br} through, blue caught {ca}, pressure {(hist or [{}])[-1].get('pressure', 0)}")
             return self._send(200, {"history": hist})
         if self.path == "/api/study":
             repo = str(body.get("repo", "")).strip() or None

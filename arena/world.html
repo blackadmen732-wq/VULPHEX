@@ -58,16 +58,31 @@
   .nodeLabel small { color:var(--dim); font-weight:400; } .nodeLabel.red { color:#ff6b7d; font-weight:700; }
   .nodeLabel .rt { font-size:9px; background:var(--red); color:#fff; padding:0 4px; border-radius:3px; letter-spacing:1px; }
   .nodeLabel .ps { color:#9aa0b0; font-style:italic; font-size:10px; }
+  #feed { top:62px; left:50%; transform:translateX(-50%); width:min(460px,44vw); max-height:170px; padding:11px 14px; overflow:auto; }
+  #feed h3 { margin:0 0 7px; font-size:12px; letter-spacing:2px; color:var(--gold); }
+  #feed .ev { font-size:12px; padding:3px 0; border-bottom:1px solid rgba(255,255,255,.04); display:flex; gap:8px; }
+  #feed .ev .tm { color:var(--dim); font-variant-numeric:tabular-nums; }
+  #feed .ev.train .ic{color:#3ad29f} #feed .ev.snow .ic{color:var(--red)} #feed .ev.study .ic{color:var(--gold)} #feed .ev.reproduce .ic{color:#56b4ff}
+  #feed .empty { color:var(--dim); font-size:12px; }
+  #busy { display:none; align-items:center; gap:7px; background:var(--red); color:#fff; font-weight:700; font-size:12px;
+          padding:5px 12px; border-radius:20px; animation:pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
 </style>
 </head>
 <body>
 <canvas id="scene"></canvas>
 <div class="topbar">
   <div class="logo">VULPHEX <small>3D WORLD</small></div>
+  <span id="busy">⚡ TRAINING…</span>
   <div class="spacer"></div>
   <label class="ml">BRAIN</label>
   <select id="model" title="Switch the active model"><option>…</option></select>
   <a class="back" href="/">← Dashboard</a>
+</div>
+
+<div class="panel" id="feed">
+  <h3>LIVE — WHAT'S HAPPENING</h3>
+  <div id="evs"><div class="empty">Waiting for the first training pass… (it runs by itself every few minutes)</div></div>
 </div>
 
 <div class="panel" id="hud">
@@ -247,6 +262,10 @@ async function refresh(){
     const at=s.autotrain||{}; $('#s-auto').innerHTML=at.on?`<span style="color:#3ad29f">ON · ${at.passes||0} passes</span>`:'<span style="color:#8a90a0">off</span>';
     $('#auto').textContent=(at.on?'♾ Auto-train: ON':'♾ Auto-train: off');
     $('#s-persist').innerHTML=s.persist?'<span style="color:#3ad29f">saving ✓</span>':'<span style="color:#ff5c6c">not set</span>';
+    const busy=$('#busy'); busy.style.display=s.busy?'inline-flex':'none'; if(s.busy)busy.textContent='⚡ '+String(s.busy).replace(':',' ')+'…';
+    const evs=s.activity||[]; const ic={train:'⚡',snow:'⚔',study:'📚',reproduce:'🛠'};
+    $('#evs').innerHTML=evs.length? evs.map(e=>`<div class="ev ${e.kind}"><span class="tm">${e.t}</span><span class="ic">${ic[e.kind]||'•'}</span><span>${e.msg}</span></div>`).join('')
+      : '<div class="empty">Waiting for the first training pass… (it runs by itself every few minutes)</div>';
     const on=s.brain_online,load=s.brain_loading;
     $('#s-brain').innerHTML=`<span class="dot" style="background:${on?'#3ad29f':load?'#ffb703':'#ff5c6c'}"></span>${on?'ONLINE':load?'loading':'offline'}`;
     if(JSON.stringify(s.models)!==JSON.stringify(MODELS)){ MODELS=s.models||[];

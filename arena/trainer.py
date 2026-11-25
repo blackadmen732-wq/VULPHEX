@@ -145,3 +145,31 @@ def snowball(core, rounds=30, seed=11, ask=None):
                         "red_reward": round(sum(red_rewards.values()), 1),
                         "blue_reward": round(blue_reward_total, 1)})
     return history
+
+
+def turbo(core, generations=100, rounds_each=30, seed=None, on_gen=None):
+    """FAST-FORWARD training: generate many varied practice scenarios and run many rounds through each — thousands of
+    generations of evolution compressed into seconds. Alternates defend-training and red-vs-blue snowball so both
+    sides climb. Returns a compact per-batch history. Deterministic and offline."""
+    import random, time, sys, os
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import scenarios as SC
+    seed = int(time.time()) % 100000 if seed is None else seed
+    rnd = random.Random(seed)
+    caps = {b["name"]: b["capabilities"] for b in core.team}
+    squad = [b["name"] for b in core.team if b["name"] in caps]
+    scen = SC.generate(generations, seed=seed)
+    history, total_rounds = [], 0
+    for gi, plants in enumerate(scen):
+        rows = None
+        for _ in range(rounds_each):
+            rows = [round_for_bot(core.brain, name, caps[name], plants, rnd) for name in squad]
+            total_rounds += 1
+        if gi % 5 == 0:                                           # a snowball burst every few scenarios
+            snowball(core, rounds=20, seed=seed + gi)
+        tr = round(sum(x["reward"] for x in rows), 1) if rows else 0
+        if gi % 10 == 0 or gi == len(scen) - 1:
+            proven = core.db.execute("SELECT COUNT(*) FROM brain_pop WHERE proven=1").fetchone()[0]
+            history.append({"generation": gi + 1, "rounds": total_rounds, "team_reward": tr, "proven": proven})
+            on_gen and on_gen(gi + 1, len(scen), proven)
+    return {"generations": len(scen), "rounds": total_rounds, "history": history}

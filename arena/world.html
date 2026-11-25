@@ -130,6 +130,7 @@
 <div id="controls">
   <button id="train">▶ Train all</button>
   <button class="red" id="snow">⚔ Snowball (red vs blue)</button>
+  <button id="turbo" style="background:#8e7dff;color:#fff">⏩ Turbo</button>
   <button class="ghost" id="auto">♾ Auto-train</button>
   <button class="ghost" id="reset">Reset view</button>
 </div>
@@ -291,6 +292,10 @@ $('#snow').onclick=async()=>{const b=$('#snow');b.disabled=true;b.textContent='�
     $('#s-pressure').textContent=last.pressure||0;toast(`${thru} breaches through, ${caught} caught · pressure ${last.pressure||0}`);refresh();}catch(_){toast('Snowball failed');}
   b.disabled=false;b.textContent='⚔ Snowball (red vs blue)';};
 
+$('#turbo').onclick=async()=>{const b=$('#turbo');b.disabled=true;b.textContent='⏩ Fast-forwarding…';toast('Turbo — thousands of rounds across fresh scenarios…');
+  try{const d=await (await fetch('/api/turbo',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({})})).json();
+    toast(d.started?'Turbo running — watch the feed':'Busy — let the current job finish');refresh();}catch(_){toast('Turbo failed');}
+  setTimeout(()=>{b.disabled=false;b.textContent='⏩ Turbo';},3000);};
 $('#pick').onclick=()=>$('#file').click();
 $('#file').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#fname').value=f.name;$('#code').value=await f.text();};
 $('#scan').onclick=async()=>{const code=$('#code').value.trim();if(!code){toast('Paste some code first');return;}

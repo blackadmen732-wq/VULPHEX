@@ -43,6 +43,27 @@ def start_study(repo=None):
     return True
 
 
+def start_turbo(generations=150, rounds_each=30):
+    """Fast-forward: run a big burst of generated-scenario training in the background ('an hour = years')."""
+    if JOB["running"]: return False
+    JOB["running"] = "turbo"
+    def go():
+        try:
+            log_activity("turbo", f"Turbo started — {generations} scenarios × {rounds_each} rounds (fast-forward)…")
+            c = C.Core(db_path=DB, scope={"hosts": []})
+            r = TR.turbo(c, generations=generations, rounds_each=rounds_each)
+            saved = P.snapshot(DB); c.close()
+            last = (r["history"] or [{}])[-1]
+            log_activity("turbo", f"Turbo done — {r['rounds']} rounds over {r['generations']} scenarios, "
+                                  f"{last.get('proven', 0)} proven tactics" + (" (saved)" if saved else ""))
+        except Exception as e:
+            log_activity("turbo", f"Turbo error: {e}"); print("[turbo] error:", e, flush=True)
+        finally:
+            JOB["running"] = None
+    import threading as _t; _t.Thread(target=go, daemon=True).start()
+    return True
+
+
 import time as _time
 AUTO = {"on": os.environ.get("VULPHEX_AUTOTRAIN", "1") not in ("0", "false", "off", ""),
         "passes": 0, "last": None, "interval": int(os.environ.get("VULPHEX_AUTOTRAIN_INTERVAL", "300"))}
@@ -250,6 +271,10 @@ class H(BaseHTTPRequestHandler):
             if not name: return self._send(400, {"error": "name a repo"})
             started = start_reproduce(name)
             return self._send(200, {"started": started, "busy": not started, "job": JOB["running"]})
+        if self.path == "/api/turbo":
+            gens = max(10, min(int(body.get("generations") or 150), 2000))
+            started = start_turbo(generations=gens, rounds_each=max(5, min(int(body.get("rounds_each") or 30), 200)))
+            return self._send(200, {"started": started, "busy": not started, "job": JOB["running"]})
         if self.path == "/api/autotrain":
             AUTO["on"] = bool(body.get("on")) if "on" in body else (not AUTO["on"])
             if body.get("interval"): AUTO["interval"] = max(60, int(body["interval"]))
@@ -355,6 +380,12 @@ def interpret(core, q):
                           "That builds a dataset from everything the bots studied (plus a teacher model writing answers) "
                           "and saves a fine-tuned model to security/brain_model/ — VULPHEX then uses it as the ancestor "
                           "brain automatically. Study the repos first so there's plenty to learn from."}
+    # turbo / fast-forward training
+    if any(w in s for w in ("turbo", "faster", "speed up", "accelerate", "fast forward", "fast-forward", "10 year", "ten year", "more data", "a lot of training", "lots of training")):
+        started = start_turbo()
+        return {"answer": ("⏩ **Turbo ON** — generating ~150 fresh practice scenarios and running thousands of rounds "
+                           "through them (years of training compressed into seconds). Watch the LIVE feed." if started
+                           else "A job is already running — let it finish, then turbo.")}
     # autonomous self-training
     if any(w in s for w in ("without me", "by itself", "on its own", "auto train", "auto-train", "keep training", "train forever", "train while", "self-train", "24/7", "even when")):
         AUTO["on"] = not any(w in s for w in ("stop", "off", "disable", "pause"))

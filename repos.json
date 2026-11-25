@@ -1,184 +1,201 @@
 {
-  "_help": "The integration map: every repo from Mark's research, assigned to the FOX bot that uses it best (2-3 per bot). 'via' = how VULPHEX drives it: cli (a binary on PATH), python (import), mcp (its MCP server), docker (official image, pinned), api (its REST). VULPHEX never merges these into one codebase; each is an ADAPTER the bot calls. Install from the OFFICIAL source only (pinned), never a random fork.. The 4 core penetration tools that actually work: nmap, nuclei, sqlmap, Metasploit. ARTEX/PentAGI/PentestGPT are optional AI pentesters (security/pentest.json). Nothing is merged; each is an adapter installed from its official source.",
-  "bots": {
-    "FOX SCOUT": [
-      {
-        "repo": "nmap",
-        "via": "cli",
-        "does": "recon / port + service enumeration"
-      },
-      {
-        "repo": "projectdiscovery/nuclei",
-        "via": "cli",
-        "does": "exposed-service checks"
-      }
-    ],
-    "FOX ATLAS": [
-      {
-        "repo": "cairn (autonomous security investigation)",
-        "via": "api",
-        "does": "evidence graph"
-      },
-      {
-        "repo": "samugit83/redamon",
-        "via": "python",
-        "does": "asset graph + approvals"
-      }
-    ],
-    "FOX AUDITOR": [
-      {
-        "repo": "DeepAudit",
-        "via": "cli",
-        "does": "AI source-code audit"
-      },
-      {
-        "repo": "semgrep/semgrep",
-        "via": "cli",
-        "does": "code patterns"
-      },
-      {
-        "repo": "gitleaks/gitleaks",
-        "via": "cli",
-        "does": "secret scan"
-      }
-    ],
-    "FOX INSPECTOR": [
-      {
-        "repo": "zaproxy/zaproxy",
-        "via": "docker",
-        "does": "web app scan"
-      },
-      {
-        "repo": "projectdiscovery/nuclei",
-        "via": "cli",
-        "does": "CVE/misconfig templates"
-      },
-      {
-        "repo": "KeygraphHQ/shannon",
-        "via": "python",
-        "does": "autonomous web/API test"
-      }
-    ],
-    "FOX BASTION": [
-      {
-        "repo": "aquasecurity/trivy",
-        "via": "cli",
-        "does": "deps + containers"
-      },
-      {
-        "repo": "Tencent/AI-Infra-Guard",
-        "via": "cli",
-        "does": "AI infra assessment"
-      },
-      {
-        "repo": "OpenEASD",
-        "via": "cli",
-        "does": "external attack surface"
-      }
-    ],
-    "FOX PROOF": [
-      {
-        "repo": "VULPHEX core",
-        "via": "python",
-        "does": "deterministic re-check"
-      },
-      {
-        "repo": "aliasrobotics/cai (archived, reference)",
-        "via": "reference",
-        "does": "verification patterns"
-      }
-    ],
-    "FOX AEGIS": [
-      {
-        "repo": "NVIDIA/garak",
-        "via": "cli",
-        "does": "LLM vuln scan"
-      },
-      {
-        "repo": "microsoft/PyRIT",
-        "via": "python",
-        "does": "AI red-team"
-      },
-      {
-        "repo": "promptfoo/promptfoo",
-        "via": "cli",
-        "does": "AI security regression"
-      }
-    ],
-    "FOX FORGE": [
-      {
-        "repo": "semgrep/semgrep (autofix)",
-        "via": "cli",
-        "does": "suggested patches"
-      },
-      {
-        "repo": "usestrix/strix",
-        "via": "python",
-        "does": "fix + verify loop"
-      }
-    ],
-    "FOX WATCH": [
-      {
-        "repo": "ARL-Next",
-        "via": "docker",
-        "does": "continuous recon"
-      },
-      {
-        "repo": "Autumn-27/ScopeSentry",
-        "via": "docker",
-        "does": "change detection"
-      },
-      {
-        "repo": "osmedeus/osmedeus-workflow",
-        "via": "cli",
-        "does": "scheduled workflows"
-      }
-    ],
-    "FOX BREACH": [
-      {
-        "repo": "sqlmapproject/sqlmap",
-        "via": "cli",
-        "does": "SQL injection exploitation"
-      },
-      {
-        "repo": "rapid7/metasploit-framework",
-        "via": "cli",
-        "does": "system exploitation"
-      },
-      {
-        "repo": "projectdiscovery/nuclei",
-        "via": "cli",
-        "does": "CVE / vuln checks"
-      }
-    ],
-    "FOX REAPER": [
-      {
-        "repo": "nmap + nuclei + sqlmap + metasploit",
-        "via": "cli",
-        "does": "the 4 core penetration tools"
-      },
-      {
-        "repo": "GreyDGL/PentestGPT",
-        "via": "python",
-        "does": "optional AI driver"
-      },
-      {
-        "repo": "jiwoochris/artex-global / vxcontrol/pentagi",
-        "via": "docker",
-        "does": "optional autonomous pentesters"
-      }
-    ],
-    "FOX WRAITH": [
-      {
-        "repo": "projectdiscovery/nuclei",
-        "via": "cli",
-        "does": "vuln checks"
-      },
-      {
-        "repo": "sqlmapproject/sqlmap",
-        "via": "cli",
-        "does": "web exploitation"
-      }
-    ]
-  }
+ "_help": "The integration map: every repo from Mark's research, assigned to the FOX bot that uses it best (2-3 per bot). 'via' = how VULPHEX drives it: cli (a binary on PATH), python (import), mcp (its MCP server), docker (official image, pinned), api (its REST). VULPHEX never merges these into one codebase; each is an ADAPTER the bot calls. Install from the OFFICIAL source only (pinned), never a random fork.. The 4 core penetration tools that actually work: nmap, nuclei, sqlmap, Metasploit. ARTEX/PentAGI/PentestGPT are optional AI pentesters (security/pentest.json). Nothing is merged; each is an adapter installed from its official source.",
+ "bots": {
+  "FOX SCOUT": [
+   {
+    "repo": "nmap",
+    "via": "cli",
+    "does": "recon / port + service enumeration"
+   },
+   {
+    "repo": "projectdiscovery/nuclei",
+    "via": "cli",
+    "does": "exposed-service checks"
+   }
+  ],
+  "FOX ATLAS": [
+   {
+    "repo": "cairn (autonomous security investigation)",
+    "via": "api",
+    "does": "evidence graph"
+   },
+   {
+    "repo": "samugit83/redamon",
+    "via": "python",
+    "does": "asset graph + approvals"
+   }
+  ],
+  "FOX AUDITOR": [
+   {
+    "repo": "DeepAudit",
+    "via": "cli",
+    "does": "AI source-code audit"
+   },
+   {
+    "repo": "semgrep/semgrep",
+    "via": "cli",
+    "does": "code patterns"
+   },
+   {
+    "repo": "gitleaks/gitleaks",
+    "via": "cli",
+    "does": "secret scan"
+   }
+  ],
+  "FOX INSPECTOR": [
+   {
+    "repo": "zaproxy/zaproxy",
+    "via": "docker",
+    "does": "web app scan"
+   },
+   {
+    "repo": "projectdiscovery/nuclei",
+    "via": "cli",
+    "does": "CVE/misconfig templates"
+   },
+   {
+    "repo": "KeygraphHQ/shannon",
+    "via": "python",
+    "does": "autonomous web/API test"
+   }
+  ],
+  "FOX BASTION": [
+   {
+    "repo": "aquasecurity/trivy",
+    "via": "cli",
+    "does": "deps + containers"
+   },
+   {
+    "repo": "Tencent/AI-Infra-Guard",
+    "via": "cli",
+    "does": "AI infra assessment"
+   },
+   {
+    "repo": "OpenEASD",
+    "via": "cli",
+    "does": "external attack surface"
+   }
+  ],
+  "FOX PROOF": [
+   {
+    "repo": "VULPHEX core",
+    "via": "python",
+    "does": "deterministic re-check"
+   },
+   {
+    "repo": "aliasrobotics/cai (archived, reference)",
+    "via": "reference",
+    "does": "verification patterns"
+   }
+  ],
+  "FOX AEGIS": [
+   {
+    "repo": "NVIDIA/garak",
+    "via": "cli",
+    "does": "LLM vuln scan"
+   },
+   {
+    "repo": "microsoft/PyRIT",
+    "via": "python",
+    "does": "AI red-team"
+   },
+   {
+    "repo": "promptfoo/promptfoo",
+    "via": "cli",
+    "does": "AI security regression"
+   }
+  ],
+  "FOX FORGE": [
+   {
+    "repo": "semgrep/semgrep (autofix)",
+    "via": "cli",
+    "does": "suggested patches"
+   },
+   {
+    "repo": "usestrix/strix",
+    "via": "python",
+    "does": "fix + verify loop"
+   }
+  ],
+  "FOX WATCH": [
+   {
+    "repo": "ARL-Next",
+    "via": "docker",
+    "does": "continuous recon"
+   },
+   {
+    "repo": "Autumn-27/ScopeSentry",
+    "via": "docker",
+    "does": "change detection"
+   },
+   {
+    "repo": "osmedeus/osmedeus-workflow",
+    "via": "cli",
+    "does": "scheduled workflows"
+   }
+  ],
+  "FOX BREACH": [
+   {
+    "repo": "sqlmapproject/sqlmap",
+    "via": "cli",
+    "does": "SQL injection exploitation"
+   },
+   {
+    "repo": "rapid7/metasploit-framework",
+    "via": "cli",
+    "does": "system exploitation"
+   },
+   {
+    "repo": "projectdiscovery/nuclei",
+    "via": "cli",
+    "does": "CVE / vuln checks"
+   }
+  ],
+  "FOX REAPER": [
+   {
+    "repo": "nmap + nuclei + sqlmap + metasploit",
+    "via": "cli",
+    "does": "the 4 core penetration tools"
+   },
+   {
+    "repo": "GreyDGL/PentestGPT",
+    "via": "python",
+    "does": "optional AI driver"
+   },
+   {
+    "repo": "jiwoochris/artex-global / vxcontrol/pentagi",
+    "via": "docker",
+    "does": "optional autonomous pentesters"
+   }
+  ],
+  "FOX WRAITH": [
+   {
+    "repo": "projectdiscovery/nuclei",
+    "via": "cli",
+    "does": "vuln checks"
+   },
+   {
+    "repo": "sqlmapproject/sqlmap",
+    "via": "cli",
+    "does": "web exploitation"
+   }
+  ],
+  "FOX VENOM": [
+   {
+    "repo": "usestrix/strix",
+    "via": "docker",
+    "does": "chained app exploitation"
+   },
+   {
+    "repo": "sqlmapproject/sqlmap",
+    "via": "cli",
+    "does": "web exploitation"
+   },
+   {
+    "repo": "berylliumsec/nebula",
+    "via": "cli",
+    "does": "operator-driven offensive assistant"
+   }
+  ]
+ }
 }

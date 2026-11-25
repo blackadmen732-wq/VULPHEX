@@ -141,6 +141,12 @@ class H(BaseHTTPRequestHandler):
                 hist = TR.train(core(), squad, rounds=rounds, range_dir=os.path.join(HERE, "range_files"))
                 if P.snapshot(DB): print("[persist] saved brain to Supabase", flush=True)
             return self._send(200, {"history": hist})
+        if self.path == "/api/snowball":
+            rounds = max(1, min(int(body.get("rounds") or 30), 200))
+            with LOCK:
+                hist = TR.snowball(core(), rounds=rounds)
+                if P.snapshot(DB): print("[persist] saved brain to Supabase", flush=True)
+            return self._send(200, {"history": hist})
         if self.path == "/api/ask":
             q = str(body.get("text", "")).strip()[:2000]
             if not q: return self._send(400, {"error": "say something"})

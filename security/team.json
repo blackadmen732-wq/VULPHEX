@@ -1,5 +1,5 @@
 {
-  "_help": "VULPHEX's twelve FOX bots. Nine DEFEND and learn; three PENETRATE your own systems (FOX BREACH, REAPER, WRAITH). Each requests capabilities; the registry picks a vetted tool/repo adapter (repos.json lists which 2-3 repos each bot drives). Every bot shares one evolving brain (brain.py) + the uncensored coach model. Side: blue = defensive, red = offensive (authorized targets you own).",
+  "_help": "VULPHEX's thirteen FOX bots. Nine DEFEND and learn; four PENETRATE your own systems (FOX BREACH, REAPER, WRAITH, VENOM). Each requests capabilities; the registry picks a vetted tool/repo adapter (repos.json lists which 2-3 repos each bot drives). Every bot shares one evolving brain (brain.py) + the uncensored coach model. Side: blue = defensive, red = offensive (authorized targets you own). The four red bots train adversarially against the blue nine (arena/trainer.py snowball) so each side pushes the other.",
   "bots": [
     {
       "name": "FOX SCOUT",
@@ -124,6 +124,17 @@
       ],
       "color": "#c1121f",
       "persona": "the ghost \u2014 thinks exactly like the attacker you fear"
+    },
+    {
+      "name": "FOX VENOM",
+      "side": "red",
+      "role": "Chained exploitation",
+      "capabilities": [
+        "exploit_validation",
+        "adversary_sim"
+      ],
+      "color": "#ff1f3d",
+      "persona": "the closer \u2014 chains small holes into one kill, never stops at first blood"
     }
   ]
 }

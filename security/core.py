@@ -57,6 +57,7 @@ class ModelRouter:
     uncensored model is used only when a job needs no refusals. Config: security/brains.json. Keys from the env."""
     NVIDIA_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
     GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+    ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 
     def __init__(self):
         try: self.cfg = json.load(open(os.path.join(HERE, "brains.json")))
@@ -77,7 +78,10 @@ class ModelRouter:
         if self.override and self.override in self.cfg.get("models", {}):
             return self.override, self.cfg["models"][self.override]
         for name, m in self.cfg.get("models", {}).items():
-            if job in (m.get("for") or []): return name, m
+            if job in (m.get("for") or []):
+                if m.get("provider") == "anthropic" and not os.environ.get("ANTHROPIC_API_KEY"):
+                    continue                                   # no Claude key set -> fall through to the next model
+                return name, m
         d = os.environ.get("VULPHEX_BRAIN_DEFAULT") or self.cfg.get("default", "fast")
         return d, self.cfg.get("models", {}).get(d, {"provider": "local", "model": os.environ.get("COACH_MODEL", "")})
 
@@ -87,6 +91,7 @@ class ModelRouter:
         try:
             if prov == "nvidia": return self._cloud(self.NVIDIA_URL, os.environ.get("NVIDIA_API_KEY", "x"), model, prompt, max_new_tokens)
             if prov == "gemini": return self._cloud(self.GEMINI_URL, os.environ.get("GEMINI_API_KEY", "x"), model, prompt, max_new_tokens)
+            if prov == "anthropic": return self._anthropic(os.environ.get("ANTHROPIC_API_KEY", "x"), model, prompt, max_new_tokens)
             return self._local_ask(model, prompt, max_new_tokens)
         except Exception:
             return None
@@ -98,6 +103,17 @@ class ModelRouter:
         with urllib.request.urlopen(req, timeout=120) as r:
             d = json.loads(r.read())
         return (d.get("choices") or [{}])[0].get("message", {}).get("content")
+
+    def _anthropic(self, key, model, prompt, mx):
+        """Call Claude directly (Anthropic Messages API — different shape + headers from the OpenAI-style endpoints)."""
+        import urllib.request
+        body = json.dumps({"model": model, "max_tokens": mx, "messages": [{"role": "user", "content": prompt}]}).encode()
+        req = urllib.request.Request(self.ANTHROPIC_URL, data=body, headers={
+            "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01"})
+        with urllib.request.urlopen(req, timeout=120) as r:
+            d = json.loads(r.read())
+        parts = d.get("content") or []
+        return "".join(p.get("text", "") for p in parts if p.get("type") == "text") or None
 
     def _local_ask(self, name, prompt, mx):
         ft = os.environ.get("VULPHEX_BRAIN_MODEL")                 # a fine-tuned ancestor model takes over if present

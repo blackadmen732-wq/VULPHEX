@@ -12,6 +12,8 @@ import core as C
 import trainer as TR
 import range as RG
 import persist as P
+import registry as REG
+import tempfile, shutil
 
 PORT = int(os.environ.get("VULPHEX_ARENA_PORT", "3006"))
 DB = os.path.join(ROOT, "security", "vulphex.db")
@@ -61,6 +63,29 @@ def brain_summary(core):
     return out
 
 
+def scan_code(code, fname):
+    """Test Lab: write the uploaded code to a throwaway dir and run VULPHEX's read-only, local scanners on it
+    (source-code analysis, secret detection, dependency audit — all pure-Python fallbacks that always work). Nothing
+    touches the network and no target is reached. Returns normalized findings, most severe first."""
+    tmp = tempfile.mkdtemp(prefix="vulphex_lab_")
+    findings = []
+    try:
+        with open(os.path.join(tmp, fname), "w", encoding="utf-8", errors="ignore") as f:
+            f.write(code)
+        for tool in ("semgrep", "gitleaks", "trivy"):                 # each falls back to a built-in if not installed
+            try: found = REG.run(tool, tmp) or []
+            except Exception: found = []
+            for fd in found:
+                where = str(fd.get("where", "")).replace(tmp + os.sep, "").replace(tmp, fname)
+                findings.append({"severity": fd.get("severity", "info"), "title": fd.get("title", "finding"),
+                                 "where": where or fname, "tool": tool})
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    order = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
+    findings.sort(key=lambda x: order.get(x["severity"], 5))
+    return findings
+
+
 def allowed(h):
     # the Arena is opened through the Kaggle tunnel (a random, unguessable https URL), so the host varies. Allow it;
     # only require JSON on POSTs. The random URL is the gate (same as Mira's brain tunnel).
@@ -80,6 +105,8 @@ class H(BaseHTTPRequestHandler):
         if not allowed(self): return self._send(403, {"error": "forbidden"})
         if self.path in ("/", "/index.html"):
             return self._send(200, open(os.path.join(HERE, "index.html"), "rb").read(), "text/html; charset=utf-8")
+        if self.path in ("/world", "/world.html"):
+            return self._send(200, open(os.path.join(HERE, "world.html"), "rb").read(), "text/html; charset=utf-8")
         if self.path == "/api/state":
             warm()
             with LOCK:
@@ -101,6 +128,11 @@ class H(BaseHTTPRequestHandler):
         except ValueError: return self._send(400, {"error": "bad json"})
         if self.path == "/api/range":
             RG.build(os.path.join(HERE, "range_files")); return self._send(200, {"built": True})
+        if self.path == "/api/test":
+            code = str(body.get("code", ""))[:200000]
+            fname = os.path.basename(str(body.get("filename", "snippet.py")) or "snippet.py")
+            if not code.strip(): return self._send(400, {"error": "no code"})
+            return self._send(200, {"findings": scan_code(code, fname)})
         if self.path == "/api/train":
             squad = [str(x) for x in (body.get("squad") or [])][:6]
             rounds = max(1, min(int(body.get("rounds") or 20), 200))

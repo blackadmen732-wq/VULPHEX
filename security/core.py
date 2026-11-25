@@ -124,8 +124,11 @@ CREATE TABLE IF NOT EXISTS coder    (id INTEGER PRIMARY KEY AUTOINCREMENT, bot T
 
 class Core:
     def __init__(self, db_path=None, scope=None, approve=False):
-        self.db = sqlite3.connect(db_path or os.path.join(HERE, "vulphex.db"))
-        self.db.row_factory = sqlite3.Row; self.db.executescript(SCHEMA)
+        self.db = sqlite3.connect(db_path or os.path.join(HERE, "vulphex.db"), check_same_thread=False, timeout=10)
+        self.db.row_factory = sqlite3.Row
+        try: self.db.execute("PRAGMA busy_timeout=8000"); self.db.execute("PRAGMA journal_mode=WAL")
+        except Exception: pass
+        self.db.executescript(SCHEMA)
         self.policy = Policy(scope if scope is not None else self._load("scope.json", {}), approve)
         self.router = ModelRouter()
         self.brain = B.Brain(self.db)

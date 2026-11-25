@@ -15,6 +15,21 @@ ROOT = os.path.dirname(HERE)
 DOC_FILES = ["README.md", "readme.md", "Readme.md", "docs/README.md", "ARCHITECTURE.md", "USAGE.md", "docs/usage.md"]
 
 
+def _code_candidates(name):
+    """Likely entry-point source files to read so the bot understands the actual CODE (not just the docs). Covers
+    Python, Go, JS/TS and a few others — best-effort across the many languages these repos are written in."""
+    n = name.replace("-", "_")
+    return [  # python
+            f"{name}.py", f"{n}.py", "main.py", "cli.py", "app.py", "__main__.py", "run.py",
+            f"src/{name}.py", f"src/{n}.py", f"{name}/__main__.py", f"{n}/cli.py", "core.py", "engine.py",
+            # go
+            "main.go", "cmd/main.go", f"cmd/{name}/main.go", f"cmd/{n}/main.go", f"{name}.go",
+            # js / ts
+            "index.js", "src/index.js", "src/index.ts", "cli.js", "bin/cli.js",
+            # others
+            "main.rb", "lib/main.rb", "src/main.rs", "main.c"]
+
+
 def repo_list():
     """Every repo across the FOX bots (from repos.json), de-duplicated, with the bot that owns it."""
     try: repos = json.load(open(os.path.join(ROOT, "repos.json")))["bots"]
@@ -61,22 +76,63 @@ def _parse_techniques(text):
     return out
 
 
+def fetch_code(repo):
+    """Best-effort: read a couple of the repo's real SOURCE files from GitHub so the bot learns from the code itself,
+    not only the prose. Returns concatenated snippets (capped), or ''."""
+    owner, name = _owner_name(repo)
+    if not owner: return ""
+    chunks, got = [], 0
+    for branch in ("main", "master"):
+        for fn in _code_candidates(name):
+            if got >= 2: break
+            try:
+                url = f"https://raw.githubusercontent.com/{owner}/{name}/{branch}/{fn}"
+                txt = urllib.request.urlopen(url, timeout=15).read().decode("utf-8", "ignore")
+                if txt.strip(): chunks.append(f"--- {fn} ---\n{txt[:5000]}"); got += 1
+            except Exception:
+                continue
+        if chunks: break
+    return "\n\n".join(chunks)[:10000]
+
+
 def study_one(entry, ask=None):
-    """Learn one repo: the model reads its docs and names the concrete techniques a bot should learn. Returns a dict
-    with a list of techniques (empty if the docs or the model were unreachable)."""
+    """Learn one repo: the model reads its docs AND real source code, then names the concrete techniques a bot should
+    learn — including how the code does it. Returns a dict with a list of techniques."""
     doc = fetch_docs(entry["repo"])
+    code = fetch_code(entry["repo"])
     techniques = []
-    if ask and doc:
-        prompt = ("You are training a cybersecurity bot. From the documentation of the tool "
-                  f"'{entry['repo']}' ({entry['does']}), list 3-4 CONCRETE techniques or capabilities the bot should "
-                  "learn from it — one per line, each a short imperative phrase (no numbering, no preamble). "
-                  f"Documentation:\n{doc}")
+    material = doc + (("\n\nSOURCE CODE:\n" + code) if code else "")
+    if ask and material.strip():
+        seen_code = "and its SOURCE CODE " if code else ""
+        prompt = ("You are training a cybersecurity bot to REPRODUCE a tool's capability. From the documentation "
+                  f"{seen_code}of '{entry['repo']}' ({entry['does']}), list 3-4 CONCRETE techniques the bot should learn "
+                  "— each a short imperative phrase describing HOW it works (no numbering, no preamble). "
+                  f"Material:\n{material}")
         try: techniques = _parse_techniques(ask(prompt))
         except Exception: techniques = []
-    return {"repo": entry["repo"], "bot": entry["bot"],
-            "techniques": techniques,
-            "note": "" if techniques else ("docs not reachable" if not doc else "needs the model to extract"),
+    return {"repo": entry["repo"], "bot": entry["bot"], "techniques": techniques,
+            "read_code": bool(code),
+            "note": "" if techniques else ("sources not reachable" if not material.strip() else "needs the model to extract"),
             "learned": len(techniques)}
+
+
+def study_repo(core, ask, query):
+    """Study just the repo(s) whose name matches `query` (e.g. 'sqlmap', 'artex'). Returns a short summary."""
+    q = (query or "").strip().lower()
+    hits = [e for e in repo_list() if q and q in e["repo"].lower()]
+    if not hits: return {"matched": 0, "repo": None, "techniques": 0}
+    core.db.execute("CREATE TABLE IF NOT EXISTS studied (repo TEXT PRIMARY KEY, bot TEXT, techniques TEXT, learned INTEGER, at TEXT)")
+    core.db.execute("CREATE TABLE IF NOT EXISTS tactics (id INTEGER PRIMARY KEY AUTOINCREMENT, repo TEXT, bot TEXT, technique TEXT, at TEXT)")
+    total = 0
+    for e in hits:
+        r = study_one(e, ask); total += r["learned"]
+        core.db.execute("INSERT OR REPLACE INTO studied VALUES (?,?,?,?,datetime('now'))",
+                        (r["repo"], r["bot"], " | ".join(r["techniques"]), int(r["learned"])))
+        core.db.execute("DELETE FROM tactics WHERE repo=?", (r["repo"],))
+        for t in r["techniques"]:
+            core.db.execute("INSERT INTO tactics (repo,bot,technique,at) VALUES (?,?,?,datetime('now'))", (r["repo"], r["bot"], t))
+    core.db.commit()
+    return {"matched": len(hits), "repo": hits[0]["repo"], "techniques": total}
 
 
 def run(core, ask=None, on_event=None):

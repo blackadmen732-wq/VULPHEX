@@ -13,11 +13,33 @@ import trainer as TR
 import range as RG
 import persist as P
 import registry as REG
+import study as STU
 import tempfile, shutil
 
 PORT = int(os.environ.get("VULPHEX_ARENA_PORT", "3006"))
 DB = os.path.join(ROOT, "security", "vulphex.db")
 LOCK = threading.Lock()
+JOB = {"running": None}                                          # one background study job at a time
+
+
+def start_study(repo=None):
+    """Kick off a deep study (all repos, or one named repo) in the background on its OWN DB connection so it never
+    blocks chat/training. The bots read each repo's docs AND real source, then store the techniques they learn."""
+    if JOB["running"]: return False
+    JOB["running"] = "study:" + (repo or "all")
+    def go():
+        try:
+            c = C.Core(db_path=DB, scope={"hosts": []})
+            ask = (lambda p: c.router.ask("study", p, max_new_tokens=70))
+            if repo: STU.study_repo(c, ask, repo)
+            else: STU.run(c, ask=ask)
+            c.close(); P.snapshot(DB)
+        except Exception as e:
+            print("[study] error:", e, flush=True)
+        finally:
+            JOB["running"] = None
+    import threading as _t; _t.Thread(target=go, daemon=True).start()
+    return True
 
 
 import threading as _th
@@ -151,6 +173,10 @@ class H(BaseHTTPRequestHandler):
                 hist = TR.snowball(core(), rounds=rounds)
                 if P.snapshot(DB): print("[persist] saved brain to Supabase", flush=True)
             return self._send(200, {"history": hist})
+        if self.path == "/api/study":
+            repo = str(body.get("repo", "")).strip() or None
+            started = start_study(repo)
+            return self._send(200, {"started": started, "busy": not started, "job": JOB["running"]})
         if self.path == "/api/model":
             want = str(body.get("model", "")).strip()
             with LOCK:
@@ -166,6 +192,8 @@ class H(BaseHTTPRequestHandler):
                 msg = (f"Switched the active brain to **{name}**. I'll use it for chat, planning and coaching now."
                        if cmd else f"Back to automatic routing (**{name}** for chat).")
                 return self._send(200, {"answer": msg, "model": name})
+            intent = interpret(core(), q)                          # understand a comment and DO it
+            if intent is not None: return self._send(200, intent)
             warm()
             try: ans = core().router.ask("chat", _persona(q), max_new_tokens=240)
             except Exception as e: ans = None; BRAIN["err"] = str(e)[:120]
@@ -199,6 +227,52 @@ def _redblue_on_findings(findings):
     breaches = sum(1 for f in findings
                    if f.get("severity") in ("critical", "high") or any(k in (f.get("title", "").lower()) for k in exploit))
     return {"blue_caught": len(findings), "red_breaches": breaches}
+
+
+def _find_repo(s):
+    """If the comment names one of the mapped repos (e.g. 'sqlmap', 'artex'), return its full repo id."""
+    for e in STU.repo_list():
+        short = e["repo"].split("/")[-1].split(" ")[0].lower()
+        if short and short in s: return e["repo"], short
+    return None, None
+
+
+def interpret(core, q):
+    """Understand a typed comment and either DO it (returns a dict with an 'action' the UI runs, or a direct answer) or
+    return None to fall through to normal chat. Deterministic keyword intent — cheap, no model call."""
+    s = q.lower()
+    full, short = _find_repo(s)
+    # how are they doing?
+    if any(w in s for w in ("how are they", "how good", "progress", "their status", "how is training", "how's training", "how is it going")):
+        prov = core.db.execute("SELECT COUNT(*) FROM brain_pop WHERE proven=1").fetchone()
+        tried = core.db.execute("SELECT v FROM brain_led WHERE k='tried'").fetchone()
+        try: st = core.db.execute("SELECT COUNT(*), COALESCE(SUM(learned),0) FROM studied").fetchone()
+        except Exception: st = (0, 0)
+        return {"answer": f"Right now: {prov[0] if prov else 0} proven tactics across the bots, "
+                          f"{tried[0] if tried else 0} tactics tried, {st[0]} repos studied with {st[1]} techniques learned. "
+                          f"Run Train or Snowball to push them further."}
+    # reproduce a tool
+    if any(w in s for w in ("reproduce", "recreate", "rebuild", "clone the technique")) and full:
+        start_study(short)
+        return {"answer": f"Deep-studying **{full}** now (reading its docs and source). Once studied, a coder bot can "
+                          f"rebuild it on your Claude with:\n`python3 security/artex.py agent \"FOX FORGE\" \"reproduce "
+                          f"{short}'s core technique as a Python adapter\"`", "action": "study", "repo": short}
+    # study / learn
+    if any(w in s for w in ("study", "learn from", "read the repo", "read the code", "understand the repo", "understand the code", "train on the repo")):
+        if full:
+            start_study(short)
+            return {"answer": f"Deep-studying **{full}** in the background — reading its docs and real source and "
+                              f"extracting the techniques. Watch the Techniques counter climb.",
+                    "action": "study", "repo": short}
+        start_study(None)
+        return {"answer": "Deep-studying **all 31 repos** in the background — docs + source for each, several techniques "
+                          "each, saved to the brain. Watch the Techniques counter climb.", "action": "study", "repo": ""}
+    # train / snowball
+    if "train" in s and not any(w in s for w in ("training going", "how is train")):
+        return {"answer": "Starting a training run on the practice range.", "action": "train"}
+    if any(w in s for w in ("snowball", "red vs blue", "attack each other", "penetrate each other", "fight")):
+        return {"answer": "Rolling the snowball — red attacks, blue defends.", "action": "snowball"}
+    return None
 
 
 def _persona(q):

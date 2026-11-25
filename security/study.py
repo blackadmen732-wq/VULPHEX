@@ -6,7 +6,7 @@
 # "Deep" study (this version): for each repo it reads the README AND a few more doc files (docs, ARCHITECTURE, USAGE,
 # the GitHub "about"/topics) and asks the model for SEVERAL concrete techniques — not one sentence — each stored as its
 # own learned tactic row. Every technique is one thing a FOX bot should actually be able to do.
-import json, os, re, sys, urllib.request
+import json, os, re, shutil, subprocess, sys, tempfile, urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -95,6 +95,43 @@ def fetch_code(repo):
     return "\n\n".join(chunks)[:10000]
 
 
+_CODE_EXT = (".py", ".go", ".js", ".ts", ".rb", ".rs", ".c", ".cpp", ".java", ".php", ".sh")
+_CLONE_SKIP = {".git", "node_modules", "vendor", "dist", "build", "test", "tests", "docs", "examples", "__pycache__"}
+
+
+def clone_source(repo, max_files=5, max_bytes=18000, timeout=150):
+    """Actually CLONE the repo (shallow) and read several real source files, so the bot learns from the whole code —
+    not just the entry file. Cleans up the clone afterward. Returns concatenated snippets, or '' on failure."""
+    owner, name = _owner_name(repo)
+    if not owner: return ""
+    tmp = tempfile.mkdtemp(prefix="vulphex_clone_")
+    root = os.path.join(tmp, "r")
+    try:
+        env = {**os.environ, "GIT_LFS_SKIP_SMUDGE": "1", "GIT_TERMINAL_PROMPT": "0"}
+        r = subprocess.run(["git", "clone", "--depth", "1", f"https://github.com/{owner}/{name}", root],
+                           capture_output=True, text=True, timeout=timeout, env=env)
+        if r.returncode != 0 or not os.path.isdir(root): return ""
+        chunks, got, total = [], 0, 0
+        for dp, dirs, names in os.walk(root):
+            dirs[:] = [d for d in dirs if d not in _CLONE_SKIP]
+            for n in sorted(names):
+                if got >= max_files or total >= max_bytes: break
+                if n.endswith(_CODE_EXT):
+                    p = os.path.join(dp, n)
+                    try:
+                        if os.path.getsize(p) > 200000: continue
+                        t = open(p, errors="ignore").read()[:5000]
+                        if t.strip(): chunks.append(f"--- {os.path.relpath(p, root)} ---\n{t}"); got += 1; total += len(t)
+                    except Exception:
+                        continue
+            if got >= max_files or total >= max_bytes: break
+        return "\n\n".join(chunks)[:max_bytes]
+    except Exception:
+        return ""
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def study_one(entry, ask=None):
     """Learn one repo: the model reads its docs AND real source code, then names the concrete techniques a bot should
     learn — including how the code does it. Returns a dict with a list of techniques."""
@@ -156,14 +193,19 @@ def reproduce(core, name, ask):
     hits = [e for e in repo_list() if q and q in e["repo"].lower()]
     if not hits: return {"ok": False, "repo": None, "msg": f"no mapped repo matches '{name}'"}
     e = hits[0]
-    doc = fetch_docs(e["repo"]); code = fetch_code(e["repo"])
+    doc = fetch_docs(e["repo"])
+    code = clone_source(e["repo"]) or fetch_code(e["repo"])        # clone the real repo for the full code; fall back to HTTP
     if not (doc or code): return {"ok": False, "repo": e["repo"], "msg": "could not read the repo's docs or source"}
-    prompt = ("You are a security engineer. Write ONE self-contained Python function `run(target)` that reproduces the "
-              f"CORE technique of '{e['repo']}' ({e['does']}) as a VULPHEX adapter. Match security/tools.py style: return a "
-              "list of finding dicts, each {severity, title, where, detail}. Use ONLY the Python standard library. Output "
-              f"ONLY the code (no prose).\n\nDOCS:\n{doc[:4000]}\n\nSOURCE:\n{code[:4000]}")
-    try: out = ask(prompt) or ""
-    except Exception as ex: return {"ok": False, "repo": e["repo"], "msg": f"model error: {ex}"}
+    prompt = ("You are a security engineer. Reproduce the CORE technique of the tool "
+              f"'{e['repo']}' ({e['does']}) as a VULPHEX adapter written in Python (stdlib only). "
+              "Your ENTIRE answer must be Python code that STARTS with `def run(target):` and returns a list of finding "
+              "dicts, each {\"severity\", \"title\", \"where\", \"detail\"}. No prose, no markdown, no other functions "
+              f"before it.\n\nDOCS:\n{doc[:3500]}\n\nSOURCE (real code from the repo):\n{code[:5000]}")
+    out = ""
+    for _ in range(2):                                            # one retry if the model drifts off-format
+        try: out = ask(prompt) or ""
+        except Exception as ex: return {"ok": False, "repo": e["repo"], "msg": f"model error: {ex}"}
+        if "def run" in _extract_code(out): break
     src = _extract_code(out)
     if "def run" not in src: return {"ok": False, "repo": e["repo"], "msg": "the model did not return a usable adapter"}
     short = e["repo"].split("/")[-1].split(" ")[0]
@@ -176,6 +218,23 @@ def reproduce(core, name, ask):
                     (e["repo"], e["bot"], path, len(src.splitlines())))
     core.db.commit()
     return {"ok": True, "repo": e["repo"], "bot": e["bot"], "file": path, "lines": len(src.splitlines())}
+
+
+def learn_all(core, ask=None, on_event=None):
+    """The daily pipeline: for EVERY mapped repo, clone it, learn its code, and reproduce its core technique as a bot
+    adapter — so the bots can do what all 31 repos do. Returns a summary. `ask` writes the adapters (code_reasoning)."""
+    repos = repo_list()
+    done = made = 0
+    for e in repos:
+        name = e["repo"].split("/")[-1].split(" ")[0]
+        try:
+            r = reproduce(core, name, ask) if ask else {"ok": False}
+            made += 1 if r.get("ok") else 0
+        except Exception:
+            r = {"ok": False}
+        done += 1
+        on_event and on_event(name, done, len(repos), r.get("ok", False))
+    return {"repos": done, "adapters": made}
 
 
 def run(core, ask=None, on_event=None):

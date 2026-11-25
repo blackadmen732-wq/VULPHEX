@@ -131,6 +131,7 @@
   <button id="train">▶ Train all</button>
   <button class="red" id="snow">⚔ Snowball (red vs blue)</button>
   <button id="turbo" style="background:#8e7dff;color:#fff">⏩ Turbo</button>
+  <button id="learn" style="background:#2ec4b6;color:#06211d">📚 Learn all repos</button>
   <button class="ghost" id="auto">♾ Auto-train</button>
   <button class="ghost" id="reset">Reset view</button>
 </div>
@@ -296,6 +297,10 @@ $('#turbo').onclick=async()=>{const b=$('#turbo');b.disabled=true;b.textContent=
   try{const d=await (await fetch('/api/turbo',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({})})).json();
     toast(d.started?'Turbo running — watch the feed':'Busy — let the current job finish');refresh();}catch(_){toast('Turbo failed');}
   setTimeout(()=>{b.disabled=false;b.textContent='⏩ Turbo';},3000);};
+$('#learn').onclick=async()=>{const b=$('#learn');b.disabled=true;b.textContent='📚 Cloning…';toast('Cloning all repos and rebuilding each as a bot — watch the feed');
+  try{const d=await (await fetch('/api/learn_all',{method:'POST',headers:{'content-type':'application/json'},body:'{}'})).json();
+    toast(d.started?'Learning all repos — watch the feed':'Busy — let the current job finish');refresh();}catch(_){toast('Learn failed');}
+  setTimeout(()=>{b.disabled=false;b.textContent='📚 Learn all repos';},3000);};
 $('#pick').onclick=()=>$('#file').click();
 $('#file').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#fname').value=f.name;$('#code').value=await f.text();};
 $('#scan').onclick=async()=>{const code=$('#code').value.trim();if(!code){toast('Paste some code first');return;}

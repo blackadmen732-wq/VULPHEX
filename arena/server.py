@@ -43,6 +43,31 @@ def start_study(repo=None):
     return True
 
 
+def start_learn_all():
+    """Clone + learn + reproduce EVERY repo as a bot adapter, in the background. Records the time in the DB so the
+    daily schedule survives restarts."""
+    if JOB["running"]: return False
+    JOB["running"] = "learn_all"
+    def go():
+        try:
+            log_activity("learn", "Learning ALL repos — cloning each and rebuilding it as a bot…")
+            c = C.Core(db_path=DB, scope={"hosts": []})
+            ask = (lambda p: c.router.ask("code_reasoning", p, max_new_tokens=1400))
+            def ev(name, done, total, ok):
+                if ok or done % 4 == 0: log_activity("learn", f"[{done}/{total}] {name}" + (" ✓ rebuilt" if ok else " — read"))
+            r = STU.learn_all(c, ask=ask, on_event=ev)
+            c.db.execute("INSERT INTO brain_led VALUES ('last_learn', ?) ON CONFLICT(k) DO UPDATE SET v=?",
+                         (int(_time.time()), int(_time.time()))); c.db.commit()
+            saved = P.snapshot(DB); c.close()
+            log_activity("learn", f"Learned all repos — rebuilt {r['adapters']} of {r['repos']} as bot adapters" + (" (saved)" if saved else ""))
+        except Exception as e:
+            log_activity("learn", f"Learn-all error: {e}"); print("[learn] error:", e, flush=True)
+        finally:
+            JOB["running"] = None
+    import threading as _t; _t.Thread(target=go, daemon=True).start()
+    return True
+
+
 def start_turbo(generations=150, rounds_each=30):
     """Fast-forward: run a big burst of generated-scenario training in the background ('an hour = years')."""
     if JOB["running"]: return False
@@ -82,8 +107,21 @@ def autotrain_loop():
     range round, then persists to Supabase, so progress accrues and survives restarts. Skips a tick if another job is
     running, so it never collides with a manual Train/Study/Snowball."""
     print("[autotrain] self-training loop started", flush=True)
+    import sqlite3 as _sq
     while True:
         try:
+            # once a day (and once on a fresh brain), clone + rebuild every repo as a bot adapter
+            if not JOB["running"]:
+                due = True
+                try:
+                    cx = _sq.connect(DB)
+                    try: row = cx.execute("SELECT v FROM brain_led WHERE k='last_learn'").fetchone()
+                    except Exception: row = None
+                    cx.close()
+                    due = (row is None) or (_time.time() - row[0] > 72000)   # ~20h
+                except Exception:
+                    due = False
+                if due: start_learn_all()
             if AUTO["on"] and not JOB["running"]:
                 JOB["running"] = "autotrain"
                 try:
@@ -271,6 +309,9 @@ class H(BaseHTTPRequestHandler):
             if not name: return self._send(400, {"error": "name a repo"})
             started = start_reproduce(name)
             return self._send(200, {"started": started, "busy": not started, "job": JOB["running"]})
+        if self.path == "/api/learn_all":
+            started = start_learn_all()
+            return self._send(200, {"started": started, "busy": not started, "job": JOB["running"]})
         if self.path == "/api/turbo":
             gens = max(10, min(int(body.get("generations") or 150), 2000))
             started = start_turbo(generations=gens, rounds_each=max(5, min(int(body.get("rounds_each") or 30), 200)))
@@ -380,6 +421,12 @@ def interpret(core, q):
                           "That builds a dataset from everything the bots studied (plus a teacher model writing answers) "
                           "and saves a fine-tuned model to security/brain_model/ — VULPHEX then uses it as the ancestor "
                           "brain automatically. Study the repos first so there's plenty to learn from."}
+    # learn / clone + reproduce every repo
+    if any(w in s for w in ("learn everything", "learn all", "clone all", "clone the repo", "reproduce all", "all the repos", "all the code", "all repos", "every repo", "rebuild all")):
+        started = start_learn_all()
+        return {"answer": ("📚 **Learning everything** — cloning all 31 repos, reading the real code, and rebuilding each "
+                           "one as a bot adapter (saved to security/reproduced/). This takes a while; watch the LIVE feed. "
+                           "It also runs by itself once a day." if started else "A job is already running — let it finish first.")}
     # turbo / fast-forward training
     if any(w in s for w in ("turbo", "faster", "speed up", "accelerate", "fast forward", "fast-forward", "10 year", "ten year", "more data", "a lot of training", "lots of training")):
         started = start_turbo()

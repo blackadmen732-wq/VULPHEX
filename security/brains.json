@@ -1,10 +1,11 @@
 {
-  "_help": "VULPHEX's brains. HYBRID: the fast NVIDIA cloud model handles chat + study (instant, no download); the uncensored ancestor model (Kaggle GPU) handles plan + coach — so the model that TRAINS and proposes tactics has no refusals, while chat stays fast. Needs the NVIDIA_API_KEY set for chat; the uncensored model loads on the GPU the first time a plan/coach runs. The router picks one per job. Keys come from the environment (NVIDIA_API_KEY, GEMINI_API_KEY).",
+  "_help": "VULPHEX's brains, by job. CLAUDE is the TEACHER: it handles reason + code_reasoning (reproducing repos, writing fine-tune lessons) when ANTHROPIC_API_KEY is set, else it falls back to NVIDIA 'big'. Fast NVIDIA handles chat + study (instant). The uncensored Qwen (Kaggle GPU) handles plan + coach with no refusals. Keys from the environment: ANTHROPIC_API_KEY (Claude), NVIDIA_API_KEY, GEMINI_API_KEY. On Kaggle, kaggle.py reads the Secrets named Claude/NVIDIA_API_KEY/GEMINI_API_KEY into these. Change the claude model id below if your account uses a different one.",
   "default": "fast",
   "models": {
-    "fast":       {"provider": "nvidia", "model": "nvidia/nemotron-3-ultra-550b-a55b", "for": ["chat", "study"]},
-    "big":        {"provider": "nvidia", "model": "nvidia/nemotron-3-ultra-550b-a55b", "for": ["reason", "code_reasoning"]},
-    "gemini":     {"provider": "gemini", "model": "gemini-flash-latest", "for": []},
-    "uncensored": {"provider": "local",  "model": "Goekdeniz-Guelmez/Josiefied-Qwen2.5-1.5B-Instruct-abliterated-v1", "for": ["uncensored", "plan", "coach"]}
+    "fast":       {"provider": "nvidia",    "model": "nvidia/nemotron-3-ultra-550b-a55b", "for": ["chat", "study"]},
+    "claude":     {"provider": "anthropic", "model": "claude-sonnet-5-5", "for": ["reason", "code_reasoning"]},
+    "big":        {"provider": "nvidia",    "model": "nvidia/nemotron-3-ultra-550b-a55b", "for": ["reason", "code_reasoning"]},
+    "gemini":     {"provider": "gemini",    "model": "gemini-flash-latest", "for": []},
+    "uncensored": {"provider": "local",     "model": "Goekdeniz-Guelmez/Josiefied-Qwen2.5-1.5B-Instruct-abliterated-v1", "for": ["uncensored", "plan", "coach"]}
   }
 }

@@ -17,18 +17,28 @@ def sh(cmd, **kw): return subprocess.run(cmd, shell=True, check=True, **kw)
 
 
 def brain_env():
-    """Prefer your NVIDIA key (added as a Kaggle Secret named NVIDIA_API_KEY) -> fast cloud brain. If it's not there,
-    fall back to the uncensored model on the GPU. Your key never leaves Kaggle and is never stored in the repo."""
-    key = os.environ.get("NVIDIA_API_KEY")
-    if not key:
+    """Read your Kaggle Secrets into the env the brains use. NVIDIA_API_KEY -> fast cloud brain (chat/study); the
+    'Claude' secret -> ANTHROPIC_API_KEY so Claude is the TEACHER (reproduce + fine-tune lessons); GEMINI_API_KEY too.
+    Your keys never leave Kaggle and are never stored in the repo. If no NVIDIA key, fall back to the GPU model."""
+    def secret(name):
+        v = os.environ.get(name)
+        if v: return v
         try:
             from kaggle_secrets import UserSecretsClient
-            key = UserSecretsClient().get_secret("NVIDIA_API_KEY")
-        except Exception: key = None
-    if key:
-        print("NVIDIA key found -> fast cloud brain.", flush=True); return {"NVIDIA_API_KEY": key}
-    print("No NVIDIA secret -> using the uncensored model on this GPU (slower to start, no key needed).", flush=True)
-    return {"VULPHEX_BRAIN_DEFAULT": "uncensored"}
+            return UserSecretsClient().get_secret(name)
+        except Exception:
+            return None
+    env = {}
+    nvidia = secret("NVIDIA_API_KEY")
+    if nvidia: env["NVIDIA_API_KEY"] = nvidia; print("NVIDIA key found -> fast cloud brain.", flush=True)
+    claude = secret("Claude") or secret("ANTHROPIC_API_KEY") or secret("CLAUDE_API_KEY")
+    if claude: env["ANTHROPIC_API_KEY"] = claude; print("Claude key found -> Claude is the teacher (reproduce + fine-tune).", flush=True)
+    gemini = secret("GEMINI_API_KEY")
+    if gemini: env["GEMINI_API_KEY"] = gemini
+    if not nvidia:
+        print("No NVIDIA secret -> using the uncensored model on this GPU (slower to start).", flush=True)
+        env["VULPHEX_BRAIN_DEFAULT"] = "uncensored"
+    return env
 
 
 def main():

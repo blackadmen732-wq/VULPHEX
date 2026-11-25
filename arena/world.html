@@ -43,6 +43,9 @@
   .nodeLabel { position:fixed; transform:translate(-50%,-50%); font-size:11px; font-weight:600; color:var(--text); pointer-events:none;
                text-shadow:0 1px 3px #000; z-index:3; white-space:nowrap; }
   .nodeLabel small { color:var(--dim); font-weight:400; }
+  .nodeLabel.red { color:#ff6b7d; font-weight:700; }
+  .nodeLabel .rt { font-size:9px; background:#ff1f3d; color:#fff; padding:0 4px; border-radius:3px; letter-spacing:1px; }
+  .nodeLabel .ps { color:#9aa0b0; font-style:italic; font-size:10px; }
 </style>
 </head>
 <body>
@@ -59,7 +62,8 @@
   <div class="stat"><span>Proven tactics</span><b id="s-proven">0</b></div>
   <div class="stat"><span>Repos studied</span><b id="s-repos">0</b></div>
   <div class="stat"><span>Techniques learned</span><b id="s-tech">0</b></div>
-  <div class="stat"><span>Bots</span><b id="s-bots">12</b></div>
+  <div class="stat"><span>Snowball pressure</span><b id="s-pressure">0</b></div>
+  <div class="stat"><span>Bots</span><b id="s-bots">13</b></div>
 </div>
 
 <div class="panel" id="lab">
@@ -77,6 +81,7 @@
 
 <div id="controls">
   <button id="train">▶ Train all</button>
+  <button id="snow" style="background:#ff1f3d;color:#fff">⚔ Snowball (red vs blue)</button>
   <button class="ghost" id="reset">Reset view</button>
 </div>
 <div id="toast"></div>
@@ -114,23 +119,31 @@ const bots = [];        // {mesh, line, data, baseScale, angle, radius, side, el
 const labelLayer = document.body;
 
 function makeBot(d, i, n, side) {
-  const ring = side==='red' ? 8 : 13;
-  const inRing = side==='red' ? i : i;
-  const total = n;
-  const angle = (i / total) * Math.PI * 2;
+  const red = side==='red';
+  const ring = red ? 7.5 : 14;
+  const angle = (i / n) * Math.PI * 2;
   const radius = ring + (i%2)*1.6;
-  const color = side==='red' ? 0xff5c6c : 0x56b4ff;
-  const geo = new THREE.SphereGeometry(0.9, 20, 20);
-  const mat = new THREE.MeshStandardMaterial({color, emissive:color, emissiveIntensity:0.25, roughness:0.4, metalness:0.3});
+  const color = new THREE.Color(d.color || (red ? '#ff1f3d' : '#56b4ff'));
+  // red attackers are MASSIVE and angular/menacing; blue defenders are smaller smooth orbs
+  const size = red ? 1.7 : 0.85;
+  const geo = red ? new THREE.IcosahedronGeometry(size, 0) : new THREE.SphereGeometry(size, 20, 20);
+  const mat = new THREE.MeshStandardMaterial({color, emissive:color, emissiveIntensity: red?0.5:0.25,
+                                              roughness: red?0.25:0.45, metalness: red?0.6:0.3, flatShading: red});
   const mesh = new THREE.Mesh(geo, mat);
-  const y = side==='red' ? 2.5 : -1.0;
+  const y = red ? 3.2 : -1.0;
   mesh.position.set(Math.cos(angle)*radius, y, Math.sin(angle)*radius);
   scene.add(mesh);
+  let halo = null;
+  if (red) {                                                   // a jagged glowing shell = "mass" / menace
+    halo = new THREE.Mesh(new THREE.IcosahedronGeometry(size*1.5, 0),
+             new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.12, wireframe:true}));
+    mesh.add(halo);
+  }
   const lgeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), mesh.position.clone()]);
-  const line = new THREE.Line(lgeo, new THREE.LineBasicMaterial({color, transparent:true, opacity:0.22}));
+  const line = new THREE.Line(lgeo, new THREE.LineBasicMaterial({color, transparent:true, opacity: red?0.35:0.2}));
   scene.add(line);
-  const el = document.createElement('div'); el.className='nodeLabel'; labelLayer.appendChild(el);
-  return {mesh, line, data:d, angle, radius, y, side, el, color};
+  const el = document.createElement('div'); el.className='nodeLabel'+(red?' red':''); labelLayer.appendChild(el);
+  return {mesh, line, halo, data:d, angle, radius, y, side, el, color, size};
 }
 
 function layout(state) {
@@ -165,16 +178,20 @@ function animate(){
   const pulse=1+Math.sin(t*2)*0.05; brainGlow.scale.setScalar(pulse);
   bots.forEach((b,i)=>{
     const prov=(b.data.proven||0), runs=(b.data.runs||0);
-    const bob=Math.sin(t*1.5+i)*0.25;
+    const red = b.side==='red';
+    const bob=Math.sin(t*1.5+i)*(red?0.4:0.25);
     b.mesh.position.y=b.y+bob;
+    b.mesh.rotation.y += red?0.01:0.003; b.mesh.rotation.x += red?0.006:0;
+    if (b.halo) b.halo.rotation.z -= 0.012;
     const s=1+Math.min(prov,5)*0.08 + (runs>0?0.05:0);
     b.mesh.scale.setScalar(s*(1+Math.sin(t*3+i)*(runs>0?0.06:0.01)));
-    b.mesh.material.emissiveIntensity=0.2+Math.min(prov,6)*0.07+Math.abs(Math.sin(t*2+i))*0.1;
+    b.mesh.material.emissiveIntensity=(red?0.4:0.2)+Math.min(prov,6)*0.07+Math.abs(Math.sin(t*2+i))*(red?0.18:0.1);
     b.line.geometry.setFromPoints([new THREE.Vector3(0,0,0), b.mesh.position.clone()]);
     const sp=project(b.mesh.position);
     b.el.style.display = sp.vis ? 'block':'none';
-    b.el.style.left=sp.x+'px'; b.el.style.top=(sp.y-22)+'px';
-    b.el.innerHTML = `${b.data.name}<br><small>${b.data.proven||0} proven · ${b.data.runs||0} runs</small>`;
+    b.el.style.left=sp.x+'px'; b.el.style.top=(sp.y-(red?34:22))+'px';
+    const persona = (b.data.persona||'').split('—').pop().trim().slice(0,44);
+    b.el.innerHTML = `${red?'⚔ ':''}${b.data.name}${red?' <span class="rt">RED</span>':''}<br><small>${b.data.proven||0} proven · ${b.data.runs||0} runs</small>${persona?`<br><small class="ps">${persona}</small>`:''}`;
   });
   renderer.render(scene,camera);
 }
@@ -206,6 +223,20 @@ $('#train').onclick=async()=>{
     toast(last?`Done — team reward ${last.team_reward}`:'Training done'); refresh();
   }catch(e){ toast('Training failed — is the server up?'); }
   btn.disabled=false; btn.textContent='▶ Train all';
+};
+
+// ---------- snowball (red vs blue) ----------
+$('#snow').onclick=async()=>{
+  const btn=$('#snow'); btn.disabled=true; btn.textContent='⚔ Fighting…'; toast('Red attacks, blue defends — the snowball rolls…');
+  try{
+    const r=await fetch('/api/snowball',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({rounds:40})});
+    const d=await r.json(); const h=(d.history||[]);
+    const last=h.slice(-1)[0]||{}; const through=h.reduce((a,x)=>a+x.red_through,0); const caught=h.reduce((a,x)=>a+x.blue_caught,0);
+    $('#s-pressure').textContent=last.pressure||0;
+    toast(`Snowball done — ${through} breaches got through, ${caught} caught · pressure ${last.pressure||0}`);
+    refresh();
+  }catch(e){ toast('Snowball failed — is the server up?'); }
+  btn.disabled=false; btn.textContent='⚔ Snowball (red vs blue)';
 };
 
 // ---------- test lab ----------

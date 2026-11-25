@@ -71,3 +71,77 @@ def curriculum(core, squad, per=15, seed=7, ask=None):
         if pair: hist += tag("pair:" + "+".join(pair), train(core, pair, per, seed=seed + 1, ask=ask))
     hist += tag("squad", train(core, squad, per * 2, seed=seed + 2, ask=ask))   # stage 3: all together, longer
     return hist
+
+
+# ---------------------------------------------------------------- SNOWBALL: red vs blue co-evolution
+# The four red bots attack; the nine blue bots defend. Every attack that gets THROUGH rewards the red bot and raises the
+# PRESSURE (difficulty) for the next round; every attack CAUGHT rewards the blue defender and eases the pressure. Both
+# sides' playbooks evolve each round, so as red gets sharper blue is forced to get sharper to keep up, and vice-versa —
+# the snowball. Deterministic and offline (no model needed); the practice range is never touched, this is bot-vs-bot.
+#
+# Which blue capabilities can catch which attack vector:
+ATTACK_DEFENSE = {
+    "exploit_validation": ["web_app_scan", "source_code_analysis", "finding_verification"],
+    "adversary_sim":      ["monitoring", "asset_discovery", "system_mapping"],
+    "autonomous_pentest": ["web_app_scan", "source_code_analysis", "monitoring", "finding_verification", "asset_discovery"],
+}
+_ALL_BLUE_CAPS = ["asset_discovery", "system_mapping", "source_code_analysis", "web_app_scan",
+                  "dependency_audit", "finding_verification", "monitoring"]
+
+
+def _power(g):
+    """Attack strength / detection strength from a playbook: deeper + persistent = stronger."""
+    return DEPTH[g["depth"]] + (1 if g.get("persist") else 0)
+
+
+def snowball(core, rounds=30, seed=11, ask=None):
+    """Co-evolve red (attack) and blue (defend). Returns per-round history for the dashboard: how many attacks got
+    through, how many were caught, and the rising/falling pressure."""
+    import random
+    rnd = random.Random(seed)
+    team = {b["name"]: b for b in core.team}
+    red = [b["name"] for b in core.team if b.get("side") == "red"]
+    blue = [b["name"] for b in core.team if b.get("side") != "red"]
+    pressure = 0.0
+    history = []
+    for r in range(1, rounds + 1):
+        blue_credit = {n: 0.0 for n in blue}
+        through = caught = 0
+        red_rewards = {}
+        for rn in red:
+            g = core.brain.active(rn)
+            caps = [c for c in team[rn]["capabilities"] if c in ATTACK_DEFENSE] or ["autonomous_pentest"]
+            vector = rnd.choice(caps)
+            difficulty = _power(g) + pressure
+            defenders = [n for n in blue if set(team[n]["capabilities"]) & set(ATTACK_DEFENSE.get(vector, _ALL_BLUE_CAPS))]
+            hit_by = None
+            for dn in sorted(defenders, key=lambda n: -_power(core.brain.active(n))):
+                dg = core.brain.active(dn)
+                if _power(dg) >= difficulty and (rnd.random() < 0.8 or dg.get("retry")):
+                    hit_by = dn; break
+            if hit_by:
+                caught += 1; blue_credit[hit_by] += 4.0
+                red_rewards[rn] = red_rewards.get(rn, 0.0) - 1.0
+                pressure = max(0.0, pressure - 0.3)
+            else:
+                through += 1
+                red_rewards[rn] = red_rewards.get(rn, 0.0) + 4.0
+                pressure += 0.5                                  # red broke through -> the snowball grows
+        # evolve red
+        for rn in red:
+            g = core.brain.active(rn)
+            ideas, _ = core.brain.coach(rn, ask) if ask else ([], [])
+            core.brain.score(rn, g, red_rewards.get(rn, 0.0), coach_ideas=ideas)
+        # evolve blue (reward for catches, minus a small idle cost)
+        blue_reward_total = 0.0
+        for bn in blue:
+            g = core.brain.active(bn)
+            reward = blue_credit[bn] - 0.2 * len(team[bn]["capabilities"])
+            blue_reward_total += reward
+            ideas, _ = core.brain.coach(bn, ask) if ask else ([], [])
+            core.brain.score(bn, g, reward, coach_ideas=ideas)
+        history.append({"round": r, "red_through": through, "blue_caught": caught,
+                        "pressure": round(pressure, 1),
+                        "red_reward": round(sum(red_rewards.values()), 1),
+                        "blue_reward": round(blue_reward_total, 1)})
+    return history
